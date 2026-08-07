@@ -90,6 +90,11 @@ then `acebhgdf`, while the `BTreeMap` keys printed `abcdefgh` every time:
         println!("btree {}", b.keys().cloned().collect::<Vec<_>>().join(""));
     }
 
+The three hash strings are what one occasion produced and are not the
+reproducible part of that measurement. A reader who runs it will get three
+different strings, and getting three different strings is the observation. The
+`BTreeMap` line is the half that is expected to be identical everywhere.
+
 That is the language making the hazard loud instead of quiet. An order that
 differs between two runs of one binary is found on the first afternoon;
 an order that is stable on the author's machine and different on somebody

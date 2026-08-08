@@ -139,7 +139,10 @@ without a bar or without a crate, is red.
 
 ```coverage-surface
 bar 85
-crate assoc-model
+crate spectro-contract
+crate spectro-candidates
+crate spectro-objective
+crate assoc-posterior
 ```
 
 Four crates, and each is here because a line in it decides an assignment rather

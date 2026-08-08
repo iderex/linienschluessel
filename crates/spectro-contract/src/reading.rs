@@ -32,8 +32,27 @@ impl<'a> Reading<'a> {
         self.refusals.push(refusal);
     }
 
-    pub(crate) fn finish<T>(self, value: T) -> Result<T, Refusals> {
-        self.refusals.into_result(value)
+    /// Finish where the value could only be built if every required field was
+    /// there, and refuse where it could not.
+    ///
+    /// This exists so that no reader has to invent a placeholder for a field
+    /// the file never gave. A reader that filled in an empty unit in order to
+    /// construct a value it was about to throw away would still be a reader
+    /// with a default unit in it, and the invariant this crate owes issue #20
+    /// is a search over its own source rather than a claim about which branch
+    /// runs.
+    pub(crate) fn finish<T>(mut self, value: Option<T>) -> Result<T, Refusals> {
+        match value {
+            Some(value) => self.refusals.into_result(value),
+            None => {
+                if self.refusals.is_empty() {
+                    self.refuse(Refusal::in_file(
+                        "the file could not be read and no reason was recorded",
+                    ));
+                }
+                Err(self.refusals)
+            }
+        }
     }
 
     /// A header field the file has to carry.

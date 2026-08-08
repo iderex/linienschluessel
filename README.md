@@ -59,11 +59,17 @@ specific obligations this board can name, each with a file or a command behind
 it, and where the two touch, the notice is the general form and
 [docs/sources.md](docs/sources.md) is the concrete one.
 
-One thing does not resolve by reading the two together. The notice says the
-licence carries the full warranty and liability disclaimer, and this repository
-has no licence:
+The notice says the licence carries the full warranty and liability disclaimer.
+That licence exists now and the section below names it, so the two resolve by
+being read together. Until 2026-08-08 this place said the opposite, because
+there was no licence file to point at.
 
-    gh api repos/iderex/linienschluessel/license --jq '.license.spdx_id'
-    {"message":"Not Found", ... "status":"404"}
+## License
 
-Which licence it gets is entry 1 of issue #1 and is not settled here.
+AGPL-3.0, decided by the maintainer on 2026-08-08. It answers entry 1 of
+issue #1 and no other entry in that issue.
+
+The full text is in [LICENSE](LICENSE). Read that file rather than this line,
+and if you want the platform's own reading of it, run:
+
+    gh api repos/iderex/linienschluessel --jq '.license.spdx_id'

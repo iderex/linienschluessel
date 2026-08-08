@@ -138,7 +138,7 @@ line in a job nobody opens. A run that cannot find this block, or finds it
 without a bar or without a crate, is red.
 
 ```coverage-surface
-bar 85
+bar 99
 crate spectro-contract
 crate spectro-candidates
 crate spectro-objective

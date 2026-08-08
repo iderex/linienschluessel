@@ -142,6 +142,13 @@ target, and it is not a general statement about Rust: a profile carrying debug
 information embeds source paths, and a target whose linker behaves differently
 was not measured.
 
+That last sentence turned out to be the operative one. The result above is a
+result about a linked executable, and the artefacts this workspace produces are
+not linked executables. Measured on this repository, the absolute path is in
+them, in readable form. The section headed `The path is in this workspace's
+artefacts` below has the numbers and supersedes this heading for anything built
+here.
+
 ### One linker flag removes both differences
 
 The MSVC linker replaces the timestamp with a hash of the content, and derives
@@ -158,9 +165,25 @@ cargo and rebuilding twice from clean, in two different directories:
 
 Identical across rebuilds and across paths, and the binary still runs and prints
 what it printed before. So on this target byte-identity is reachable, it costs
-one flag, and the decision is to take it: the release profile carries the flag
-when the workspace lands, and the comparison above is what proves it still
-holds rather than a sentence saying it does.
+one flag, and the decision is to take it.
+
+The sentence that followed said the release profile carries the flag when the
+workspace lands. The workspace has landed and the profile does not carry it, and
+that is deliberate rather than forgotten. `/Brepro` is a flag to the MSVC
+linker, and the workspace links nothing: thirteen library crates produce
+thirteen `.rlib` archives and no executable, so there is no link step for the
+flag to reach and no timestamp or PDB signature in the output for it to replace.
+
+    cargo build --release --locked --offline
+    ls target/release/*.rlib | wc -l
+    13
+    ls target/release/*.exe
+    ls: cannot access 'target/release/*.exe': No such file or directory
+
+Adding the flag now would put a line in the manifest whose effect nobody could
+measure, which is the shape this record exists to avoid. The binary crate that
+would give it something to act on is entry 6 of #1, and the decision stands
+waiting for it.
 
 What that flag costs was not measured here. Debuggers and symbol servers key a
 binary to its PDB through exactly the two fields it replaces, so a workflow that
@@ -176,18 +199,185 @@ a proc macro or a code generator is a source of variation this crate did not
 have. Nothing here says a rebuild in a year reproduces these bytes; it says
 which fields moved when nothing else did, and which flag stopped them.
 
+## The same measurements, made here
+
+The workspace landed in #78, so everything above that was measured on a scratch
+crate can be measured on a commit of this repository instead, and this section
+is that repeat. It is the section a reader who has only this repository can run.
+
+The two pin files are tracked from this change onwards:
+
+    git ls-files rust-toolchain.toml Cargo.lock
+    Cargo.lock
+    rust-toolchain.toml
+
+Every command below was run on x86_64-pc-windows-msvc with the toolchain
+`rust-toolchain.toml` names, and rustup takes the version from that file without
+being asked:
+
+    rustup show active-toolchain
+    1.97.0-x86_64-pc-windows-msvc (overridden by '<elided>/rust-toolchain.toml')
+    cargo --version
+    cargo 1.97.0 (c980f4866 2026-06-30)
+
+Nothing below depends on this record's own text, so a later commit that edits
+only prose reproduces it unchanged. What the results do depend on is the crate
+sources, the manifests, the lock and the pin file, and a change to any of those
+is a reason to run the commands again rather than to cite these.
+
+### Two builds of one commit are byte-identical
+
+Built twice from a clean `target`, with no source byte touched between the two,
+and the thirteen archives compared by content rather than by name:
+
+    cargo clean && cargo build --release --locked --offline   # first build
+    cargo clean && cargo build --release --locked --offline   # second build
+    diff <(sha256sum first/*.rlib  | sed 's# .*/# #') \
+         <(sha256sum second/*.rlib | sed 's# .*/# #') ; echo "exit=$?"
+    exit=0
+
+The hashes themselves are not pasted, because a list of them in a document is
+wrong the first time anybody edits a crate, while the comparison stays right.
+Thirteen files were compared and thirteen matched:
+
+    ls target/release/*.rlib | wc -l
+    13
+
+The suite passes offline with the lock enforced, which is the other half of a
+clean clone building this commit:
+
+    cargo test --locked --offline
+    cargo test --locked --offline 2>&1 | grep -E '^test result' \
+      | awk -F'[ ;]' '{p+=$4} END {print p}'
+    57
+    cargo test --locked --offline 2>&1 | grep -c '^test result: FAILED'
+    0
+
+### The lock refuses a graph that would move, measured here
+
+One dependency added to a member manifest, the lock left alone:
+
+    printf '\n[dependencies]\nassoc-model = { path = "../assoc-model" }\n' \
+      >> crates/assoc-synth/Cargo.toml
+    cargo build --release --locked --offline
+    error: cannot update the lock file <elided>/Cargo.lock because --locked was passed to prevent this
+    help: to generate the lock file without accessing the network, remove the --locked flag and use --offline instead.
+    exit=101
+
+The lock is byte-for-byte what it was before that run, so the flag refuses
+rather than repairing quietly and then complaining:
+
+    sha256sum Cargo.lock        # before and after the refusing run
+    4eaad7b98d193fbc2a61d7c1c7ed8eaa4aafbd70dbd314d955008c5e2ab20e1a *Cargo.lock
+
+Cargo's `help:` line still answers a different question, and a contributor who
+follows it drops the guard instead of updating the lock. That is the same
+finding as above, now made against this repository rather than a scratch crate,
+and the repair sentence is still the job's to print.
+
+The second refusal above, an altered `checksum` line, cannot be measured here at
+all. Every package in this lock is a member of this workspace and none of them
+is fetched, so the lock carries no checksum to alter:
+
+    grep -c '^\[\[package\]\]' Cargo.lock
+    13
+    grep -c '^checksum' Cargo.lock
+    0
+
+That refusal therefore stays a scratch-crate result until this workspace takes
+its first external dependency, and it should be re-measured on the change that
+adds one rather than assumed to have carried over.
+
+### The path is in this workspace's artefacts
+
+The scratch executable did not carry its build directory. These archives do, and
+in readable form. The tree was copied to a second absolute path, built there
+with the same commands, and the two sets compared:
+
+    diff <(sha256sum first/*.rlib       | sed 's# .*/# #') \
+         <(sha256sum second-path/*.rlib | sed 's# .*/# #') ; echo "exit=$?"
+    exit=1
+
+All thirteen differ. They differ in two different ways, and the split matters
+because only one of the two is legible to anyone who opens the file.
+
+The twelve crates whose `src/lib.rs` is empty differ inside one run of at most
+sixteen byte positions and nowhere else, and each pair of files is the same
+size, so no path is stored in them:
+
+    cmp -l first/libassoc_model.rlib second-path/libassoc_model.rlib \
+      | awk 'NR==1{f=$1} {l=$1} END{print "first="f" last="l" span="(l-f+1)" count="NR}'
+    first=1589 last=1604 span=16 count=16
+
+Two of the twelve report fifteen rather than sixteen, which is two hashes
+agreeing on one byte and not a different shape. Sixteen bytes that move with the
+build directory are a fingerprint of the path rather than the path. What is in
+`spectro-contract`, the one crate with source in it, is the path itself, twice
+per source file:
+
+    ls crates/spectro-contract/src | wc -l
+    9
+    strings -a first/libspectro_contract.rlib | grep -c '<the first root>'
+    18
+    strings -a second-path/libspectro_contract.rlib | grep -c '<the second root>'
+    18
+
+Nine of the eighteen are the source file's own absolute path and nine are the
+bare working directory the compiler ran in. The strings are absolute and begin
+at the drive letter, so each one carries the account name of whoever ran the
+build. Nothing here reaches an answer file and
+this is not the leak #59 is about, but it is the same class, and it is worth
+knowing before anybody ships a compiled artefact from a developer machine.
+
+`--remap-path-prefix` removes the readable half and does not close the gap.
+Building at each root with that root remapped to one name:
+
+    RUSTFLAGS="--remap-path-prefix=<root>=/src" cargo build --release --locked --offline
+    strings -a <either>/libspectro_contract.rlib | grep -c '<either root>'
+    0
+
+Twelve of the thirteen archives then hash the same at both paths. The thirteenth
+does not, and the residue is in its metadata section rather than in any string:
+
+    diff <(sha256sum remapped-first/*.rlib | sed 's# .*/# #') \
+         <(sha256sum remapped-second/*.rlib | sed 's# .*/# #') | grep -c '^[<>]'
+    2
+    diff <(strings -a remapped-first/libspectro_contract.rlib | sort -u) \
+         <(strings -a remapped-second/libspectro_contract.rlib | sort -u) \
+      | grep 'lib.rmeta/'
+    < lib.rmeta/      0           0     0     644     261889    `
+    > lib.rmeta/      0           0     0     644     266725    `
+
+Four thousand eight hundred and thirty-six bytes of `lib.rmeta` that still move
+with the path, and what occupies them was not identified. So the honest state is
+that one flag removes every path a reader can see and does not make two builds
+at two paths equal, and this record makes no claim about what the remainder is.
+
+None of this touches the result at the top of this section. Two builds at one
+path are identical; the path is what has to be held fixed, and holding it fixed
+is a property of a build environment rather than of this repository.
+
+### What is not claimed here either
+
+One machine, one target, one toolchain version, one profile. No second platform,
+which is #39's. No claim that a rebuild in a year reproduces these archives. The
+`.rlib` is cargo's intermediate rather than a thing anybody ships, and a release
+artefact for an operator is #63's, so byte-identity for the thing that eventually
+gets published has not been measured because that thing does not exist.
+
 ## What remains owed to #4
 
-The pins have to be files in this repository, and the workspace they would sit
-in is issue #3's. Until that lands there is nothing here to pin.
+One thing, and it is another issue's file.
 
 The build job that reads the version from `rust-toolchain.toml` rather than from
-a string of its own, passes `--locked`, and wraps cargo's help line with the
-repair sentence, is issue #5's job to create and does not exist. This
-repository's workflows today are the ones `git ls-files .github/workflows`
-prints, and none of them builds anything.
+a string of its own, passes `--locked`, and prints the repair sentence beside
+cargo's help line, is issue #5's job to create. This repository's workflows are
+the ones `git ls-files .github/workflows` prints, and none of them builds or
+tests anything. Until that job exists, the pin file and the lock are read by
+whoever runs the commands above and by nothing else, and #4 says so rather than
+counting a tracked file as a mechanism.
 
-The double-build comparison in this record was made on a scratch crate. #4 asks
-for it on a commit of this repository, and that comparison is the one that can
-be repeated by a reader who has only this repository. It is owed as soon as
-there is something here to build.
+The proof that job owes is the one that catches the mistake worth catching: the
+job made to fail when the version it used is not the version the file names.
+A job installing a toolchain by naming a version string of its own satisfies
+nothing here, even on the day the two strings agree.

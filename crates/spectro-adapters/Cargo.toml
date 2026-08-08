@@ -1,0 +1,5 @@
+[package]
+name = "spectro-adapters"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true

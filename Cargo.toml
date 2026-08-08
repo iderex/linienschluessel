@@ -1,0 +1,26 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/assoc-model",
+    "crates/assoc-determinism",
+    "crates/assoc-solve",
+    "crates/assoc-posterior",
+    "crates/assoc-synth",
+    "crates/spectro-quantity",
+    "crates/spectro-contract",
+    "crates/spectro-adapters",
+    "crates/spectro-candidates",
+    "crates/spectro-objective",
+    "crates/spectro-null",
+    "crates/spectro-answer",
+    "crates/spectro-report",
+]
+
+# Shared by every member so a new crate inherits the edition and the release
+# posture instead of restating them. `publish = false` because this repository
+# has no licence yet, which is entry 1 of issue #1, and cargo would otherwise
+# accept a publish of an unlicensed package.
+[workspace.package]
+version = "0.0.0"
+edition = "2024"
+publish = false

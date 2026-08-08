@@ -1,0 +1,10 @@
+[package]
+name = "spectro-objective"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+# docs/decisions/layout.md: `assoc-model` holds the scoring interface as a trait
+# it never implements, and every score term is this crate's.
+[dependencies]
+assoc-model = { path = "../assoc-model" }

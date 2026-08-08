@@ -1,0 +1,144 @@
+# Coverage over the surface that decides an assignment, for issue #54.
+#
+# Not the whole repository. A single number over everything is raised most
+# easily by testing the parts that do not matter, and the parts that do not
+# matter are most of any tree. The surface this gates on, and the bar it gates
+# at, are both read out of docs/quality-parity.md rather than written here, so
+# the document is the authority and the two cannot drift apart. Moving a crate
+# into or out of the surface is then a visible edit to a document somebody
+# argues in, not a line in a job nobody reads.
+#
+# Fail-closed in four directions, because a coverage check that passes when it
+# could not measure anything is worse than no check: a missing report, a report
+# jq cannot parse, a surface with no executable lines in it, and a percentage
+# below the bar all red this job. The first three are the failure mode that
+# makes a coverage gate decorative when it is missed.
+#
+# The whole-repository number is printed in the log beside the surface number.
+# It is reported and does not gate, which is docs/quality-parity.md's posture
+# and the target board's.
+name: coverage
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: ["**"]
+
+# Explicit deny-all at workflow level; the job grants only what it needs.
+permissions: {}
+
+# Cancel a superseded run on the same ref so a new push does not queue behind an
+# obsolete measurement. Nothing here publishes, so cancelling is safe.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  surface:
+    name: Coverage on the deciding surface
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # No step pushes via git, so do not persist the GITHUB_TOKEN.
+          persist-credentials: false
+
+      - name: Install the pinned toolchain and the coverage component
+        # rustup reads rust-toolchain.toml, so the version comes from the tracked
+        # pin file and never from a string here. profile = "minimal" in that file
+        # leaves out llvm-tools, which the instrumentation needs, so it is added
+        # to whatever version the file named rather than to a version named here.
+        run: |
+          set -euo pipefail
+          rustup show active-toolchain
+          rustup component add llvm-tools-preview
+
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@6c6fd71fe4fb72c3697d269963d0e15df8adedad # v2.85.10
+        with:
+          tool: cargo-llvm-cov@0.8.7
+
+      - name: Measure
+        # --locked so a run that would move the dependency graph fails here the
+        # same way it fails everywhere else. The report is written even when a
+        # test fails, and a failing suite reds this job through cargo's exit code.
+        run: cargo llvm-cov --workspace --locked --json --output-path coverage.json
+
+      - name: Judge against the surface and the bar in docs/quality-parity.md
+        run: |
+          set -euo pipefail
+          report=coverage.json
+          doc=docs/quality-parity.md
+
+          # The surface and the bar come out of the document, between the fence
+          # labelled coverage-surface. An absent, malformed or empty block is a
+          # failure: a job that silently measured nothing reads exactly like a
+          # job that measured everything and found it good.
+          block=$(awk '/^```coverage-surface$/{f=1;next} f&&/^```$/{exit} f' "$doc")
+          if [ -z "$block" ]; then
+            echo "::error::No coverage-surface block in ${doc}. The surface and the bar are declared there, not here."
+            exit 1
+          fi
+
+          bar=$(printf '%s\n' "$block" | awk '$1=="bar"{print $2}')
+          crates=$(printf '%s\n' "$block" | awk '$1=="crate"{print $2}')
+
+          case "$bar" in
+            ''|*[!0-9.]*)
+              echo "::error::The coverage-surface block in ${doc} declares no usable bar (read: '${bar}')."
+              exit 1
+              ;;
+          esac
+          if [ -z "$crates" ]; then
+            echo "::error::The coverage-surface block in ${doc} names no crate. A bar over an empty surface measures nothing."
+            exit 1
+          fi
+
+          if [ ! -f "$report" ]; then
+            echo "::error::No coverage report at ${report}. Failing closed rather than passing a run that measured nothing."
+            exit 1
+          fi
+          if ! jq empty "$report" >/dev/null 2>&1; then
+            echo "::error::The coverage report at ${report} could not be read as JSON. Failing closed rather than passing an unreadable measurement."
+            exit 1
+          fi
+
+          total=0
+          covered=0
+          for crate in $crates; do
+            if [ ! -d "crates/${crate}" ]; then
+              echo "::error::${doc} names crate '${crate}' in the surface and crates/${crate} does not exist."
+              exit 1
+            fi
+            # llvm-cov reports absolute filenames, with the separator of whatever
+            # ran it, so both spellings are folded before the path is matched.
+            c=$(jq --arg p "/crates/${crate}/src/" \
+              '[.data[0].files[] | select((.filename | gsub("\\\\"; "/")) | contains($p)) | .summary.lines.count] | add // 0' "$report")
+            v=$(jq --arg p "/crates/${crate}/src/" \
+              '[.data[0].files[] | select((.filename | gsub("\\\\"; "/")) | contains($p)) | .summary.lines.covered] | add // 0' "$report")
+            echo "surface  ${crate}  lines=${c}  covered=${v}"
+            total=$((total + c))
+            covered=$((covered + v))
+          done
+
+          whole=$(jq -r '.data[0].totals.lines | "\(.covered)/\(.count)"' "$report")
+          echo "whole repository (reported, does not gate): ${whole} lines"
+
+          if [ "$total" -eq 0 ]; then
+            echo "::error::The surface named in ${doc} holds no executable line in this report. An empty measurement is a failure here, not a pass over nothing."
+            exit 1
+          fi
+
+          percent=$(awk -v c="$covered" -v t="$total" 'BEGIN{printf "%.2f", 100*c/t}')
+          echo "surface total: ${covered}/${total} lines, ${percent}%, bar ${bar}%"
+
+          if awk -v p="$percent" -v b="$bar" 'BEGIN{exit !(p < b)}'; then
+            echo "::error::Coverage on the deciding surface is ${percent}%, below the bar of ${bar}% declared in ${doc}."
+            exit 1
+          fi
+          echo "Coverage on the deciding surface is ${percent}%, at or above the bar of ${bar}%."

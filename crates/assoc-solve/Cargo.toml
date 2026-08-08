@@ -1,0 +1,9 @@
+[package]
+name = "assoc-solve"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+# docs/decisions/layout.md: the solver works "against `assoc-model` alone".
+[dependencies]
+assoc-model = { path = "../assoc-model" }

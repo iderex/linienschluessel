@@ -1,0 +1,10 @@
+[package]
+name = "spectro-candidates"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+# docs/decisions/layout.md: `assoc-model` knows an item occupies a fixed set of
+# named slots; `spectro-candidates` declares the two slots.
+[dependencies]
+assoc-model = { path = "../assoc-model" }

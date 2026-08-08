@@ -193,16 +193,26 @@ fn read_document(document: &Document) -> Result<LevelSet, Refusals> {
     let unknown_header_fields = document.headers_outside(HEADER_FIELDS);
     let unknown_columns = document.columns_outside(COLUMNS);
 
-    let built = LevelSet {
-        contract_version: contract_version.unwrap_or(Version { major: 0, minor: 0 }),
-        energy_unit: energy_unit.unwrap_or_default().to_owned(),
-        energy_reference: energy_reference.unwrap_or_default().to_owned(),
-        level_set_id: level_set_id.unwrap_or_default().to_owned(),
-        covariance_file: covariance_file.map(str::to_owned),
-        derived_from_line_lists: derived_from_line_lists.map(str::to_owned),
-        levels,
-        unknown_header_fields,
-        unknown_columns,
+    let built = match (
+        contract_version,
+        energy_unit,
+        energy_reference,
+        level_set_id,
+    ) {
+        (Some(contract_version), Some(energy_unit), Some(energy_reference), Some(level_set_id)) => {
+            Some(LevelSet {
+                contract_version,
+                energy_unit: energy_unit.to_owned(),
+                energy_reference: energy_reference.to_owned(),
+                level_set_id: level_set_id.to_owned(),
+                covariance_file: covariance_file.map(str::to_owned),
+                derived_from_line_lists: derived_from_line_lists.map(str::to_owned),
+                levels,
+                unknown_header_fields,
+                unknown_columns,
+            })
+        }
+        _ => None,
     };
     reading.finish(built)
 }

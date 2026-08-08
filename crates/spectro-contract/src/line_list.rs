@@ -193,14 +193,27 @@ fn read_document(document: &Document) -> Result<LineList, Refusals> {
     let unknown_header_fields = document.headers_outside(HEADER_FIELDS);
     let unknown_columns = document.columns_outside(COLUMNS);
 
-    let built = LineList {
-        contract_version: contract_version.unwrap_or(Version { major: 0, minor: 0 }),
-        position_unit: position_unit.unwrap_or_default().to_owned(),
-        position_medium: default_medium.unwrap_or_default().to_owned(),
-        line_list_id: line_list_id.unwrap_or_default().to_owned(),
-        lines,
-        unknown_header_fields,
-        unknown_columns,
+    let built = match (
+        contract_version,
+        position_unit,
+        default_medium,
+        line_list_id,
+    ) {
+        (
+            Some(contract_version),
+            Some(position_unit),
+            Some(position_medium),
+            Some(line_list_id),
+        ) => Some(LineList {
+            contract_version,
+            position_unit: position_unit.to_owned(),
+            position_medium: position_medium.to_owned(),
+            line_list_id: line_list_id.to_owned(),
+            lines,
+            unknown_header_fields,
+            unknown_columns,
+        }),
+        _ => None,
     };
     reading.finish(built)
 }

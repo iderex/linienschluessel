@@ -88,12 +88,15 @@ pub fn read(bytes: &[u8]) -> Result<Covariance, Refusals> {
     let unknown_header_fields = document.headers_outside(HEADER_FIELDS);
     let unknown_columns = document.columns_outside(COLUMNS);
 
-    let built = Covariance {
-        contract_version: contract_version.unwrap_or(Version { major: 0, minor: 0 }),
-        level_set_id: level_set_id.unwrap_or_default().to_owned(),
-        entries,
-        unknown_header_fields,
-        unknown_columns,
+    let built = match (contract_version, level_set_id) {
+        (Some(contract_version), Some(level_set_id)) => Some(Covariance {
+            contract_version,
+            level_set_id: level_set_id.to_owned(),
+            entries,
+            unknown_header_fields,
+            unknown_columns,
+        }),
+        _ => None,
     };
     reading.finish(built)
 }

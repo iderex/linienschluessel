@@ -73,8 +73,7 @@ jobs:
         # Only on this branch, which is not for merging. The report is left in
         # place and its bytes are made unparseable, which is the case a check
         # that trusted the file's existence would pass over.
-        run: printf 'not json at all
-' > coverage.json
+        run: echo "not json at all" > coverage.json
 
       - name: Judge against the surface and the bar in docs/quality-parity.md
         run: |

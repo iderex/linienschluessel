@@ -138,11 +138,8 @@ line in a job nobody opens. A run that cannot find this block, or finds it
 without a bar or without a crate, is red.
 
 ```coverage-surface
-bar 99
-crate spectro-contract
-crate spectro-candidates
-crate spectro-objective
-crate assoc-posterior
+bar 85
+crate assoc-model
 ```
 
 Four crates, and each is here because a line in it decides an assignment rather

@@ -125,7 +125,83 @@ The coverage bar. On the target board it keys on the surface that decides
 authentication outcomes rather than on the whole repository. The equivalent
 surface here is the one that decides an assignment: the objective, the
 probability model and the input readers. Whole-repository coverage is reported
-and does not gate, for the same reason it does not there. #54 carries it.
+and does not gate, for the same reason it does not there. The section below
+names that surface precisely enough for a job to read, and #54 is where it was
+argued.
+
+## The surface coverage is measured over, and the bar
+
+This block is data. `.github/workflows/coverage.yml` reads the surface and the
+bar out of it and holds nothing of its own, so the two cannot drift apart and
+moving a crate into or out of the surface is an edit to this page rather than a
+line in a job nobody opens. A run that cannot find this block, or finds it
+without a bar or without a crate, is red.
+
+```coverage-surface
+bar 85
+crate spectro-contract
+crate spectro-candidates
+crate spectro-objective
+crate assoc-posterior
+```
+
+Four crates, and each is here because a line in it decides an assignment rather
+than because it is important. `spectro-contract` holds the readers, and a reader
+that accepts a malformed file produces a confident wrong answer instead of an
+error. `spectro-candidates` decides what the rest of a run is allowed to
+consider at all. `spectro-objective` holds every score term. `assoc-posterior`
+holds the posterior construction and the mass that stays on none of these, which
+is the number a person would put in a paper.
+
+A crate is named rather than a directory or a module path. The names are the
+units `docs/decisions/layout.md` fixes, a crate cannot be added without choosing
+a side, and the job refuses a name with no crate behind it, so a crate that is
+renamed or removed reds this check instead of quietly leaving the surface.
+
+### The bar, and why that number
+
+Eighty-five per cent of executable lines, over the four crates together.
+
+It is set just under what the surface measures today rather than at a round
+number chosen in advance, so it bites on a real fall and not on the difference
+between one test and the next. Today, with one of the four crates carrying code:
+
+    cargo llvm-cov --workspace --locked --json --output-path coverage.json
+    jq -r '.data[0].totals.lines | "\(.covered)/\(.count) \(.percent)"' coverage.json
+    941/1063 88.52304797742238
+
+That whole-repository number and the surface number are the same number today,
+because `spectro-contract` is the only crate in the tree with an executable line
+in it. They separate the day a crate outside the surface grows code, and the job
+prints both so that the day is visible.
+
+It is a floor and raising it is a decision somebody makes here, in this file,
+with the reason. A bar that tracks the measurement upward automatically is a
+ratchet nobody chose, and the first change that has to lower it then argues with
+a number rather than with a person.
+
+### What this bar does not do
+
+It is an aggregate, so a surface crate at zero per cent is hidden by a larger
+one above the bar. That is a real hole and it is worth knowing which way it
+points: three of the four crates named above are empty today, they contribute no
+line to either side of the ratio, and the whole number is `spectro-contract`'s.
+So this check currently measures the readers and says nothing about the other
+three, and it will keep saying nothing about a crate until that crate has a line
+in it. What it does do from the first such line is fall, because an untested
+module arrives as uncovered lines in the denominator.
+
+It gates nothing. No status check is required to merge on this board, which is
+the deviation at the top of this page and is #69's, so this job reports and
+reports only.
+
+One crate that decides an assignment is not on the list. `spectro-quantity`
+holds the conversions of `docs/decisions/line-position.md` and is the only place
+a medium is converted, so a fault there moves every position in a run. #54 names
+the objective, the probability model, the candidate generation, the readers and
+the none-of-these mass, and the conversions are in none of those five, so
+adding it here would be a widening decided by whoever wrote the block. It is
+written down instead, for whoever lands the conversions to raise.
 
 ## What is reported and does not gate
 

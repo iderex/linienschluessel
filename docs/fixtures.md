@@ -5,10 +5,14 @@ every fixture says where it came from, under what terms it is here, and whether
 it is real or made up. A file that says none of those is refused rather than
 quietly trusted.
 
-This repository carries no fixture today:
+This repository carries no fixture today, at either of the two places one could
+stand:
 
-    git ls-files 'tests/fixtures' 'tests/fixtures/*' ; echo "exit=$?"
+    git ls-files 'tests/fixtures' 'tests/fixtures/*' 'crates/*/tests/fixtures/*' ; echo "exit=$?"
     exit=0
+
+The second path is where a cargo crate puts the files its own suite reads, and
+it is the one the command first written here did not ask about.
 
 Whether real extracts may be carried at all is entry 2 of issue #1 and is the
 maintainer's to answer. The rule below does not depend on that answer: it says
@@ -86,7 +90,7 @@ the bytes of the same fixture without either of them doing anything wrong.
 
 `.gitattributes` at the root now carries one line:
 
-    tests/fixtures/** -text
+    **/tests/fixtures/** -text
 
 With that file present, the same offer keeps both carriage returns and the blob
 is 33 bytes:
@@ -103,14 +107,41 @@ is 33 bytes:
     00000020: 0a                                       .
 
 Two different blob hashes for one file, and the only difference between the two
-runs is whether that line exists. Delete the line and the first hash comes back,
+runs is whether that line exists. Empty the file and the first hash comes back,
+at both paths:
+
+    : > .gitattributes
+    git hash-object --path tests/fixtures/probe.tsv probe.tsv
+    057d47b1d68953dca548b9c10797c2b34c2a4f27
+    git hash-object --path crates/spectro-contract/tests/fixtures/probe.tsv probe.tsv
+    057d47b1d68953dca548b9c10797c2b34c2a4f27
+
 which is the whole proof and is the reason it is written out rather than
 asserted.
 
-The rule is held to `tests/fixtures/**` on purpose. A repository-wide `-text`
+The leading `**/` is the part that was missing and is not decoration. A
+gitattributes pattern carrying a slash is anchored to the directory its
+`.gitattributes` sits in, so the line as it first landed, `tests/fixtures/**`,
+reached one path at the repository root and nothing under `crates/`. That is
+where a cargo crate's own fixtures live. The same three commands with the
+earlier line in place:
+
+    printf 'tests/fixtures/** -text\n' > .gitattributes
+    git hash-object --path tests/fixtures/probe.tsv probe.tsv
+    23b7e9fa24b4faefb3c428675877c21d2e329bc3
+    git hash-object --path crates/spectro-contract/tests/fixtures/probe.tsv probe.tsv
+    057d47b1d68953dca548b9c10797c2b34c2a4f27
+
+One line, two paths, two answers, and the path that lost the byte is the one a
+contributor would have used. Nothing failed while that was true, because no
+fixture stands at either path yet, and the first one to land at a crate path
+would have arrived without the byte it existed to prove.
+
+The rule is held to fixture directories on purpose. A repository-wide `-text`
 would change how every tracked file here is stored, for a reason that is only
-about fixtures, and `git check-attr -a README.md` prints nothing under the line
-above, which is the check that it did not reach further than it was meant to.
+about fixtures. Under the line above, `git check-attr -a` prints nothing for
+`README.md`, for `crates/spectro-contract/src/lib.rs` or for this file, which is
+the check that it did not reach further than it was meant to.
 
 The line is not a substitute for looking. It stops git from rewriting a fixture,
 and it cannot stop an editor from doing the same thing before git ever sees the
@@ -123,10 +154,26 @@ the record above.
 ## What is not here yet
 
 Issue #8 asks for a check that refuses a fixture file carrying no record, and for
-a run in which a fixture added without one turns that check red. There is no
-check, because there is nothing here to run one: this repository has no source
-tree and no job that builds or tests anything. Issue #8 stays open with that
-written into it.
+a run in which a fixture added without one turns that check red. Neither exists,
+and the reason has changed since this was first written.
+
+It is no longer that there is nowhere to run a check. There is a tree and there
+are jobs that build and test it. Read at bb20bad:
+
+    git ls-files 'crates/*/Cargo.toml' 'crates/*/src/*.rs' 'crates/*/tests/*.rs' | wc -l
+    42
+    git ls-files .github/workflows | wc -l
+    7
+
+What is missing is where such a check would live. A check refusing a fixture
+that has no sidecar judges a directory of this repository rather than a crate,
+and no crate owns that. Putting it in one of the thirteen makes an arbitrary
+crate the keeper of a repository-wide rule. Adding a fourteenth for it breaks
+the property issue #74 measured on the change that landed the workspace, that
+the members are exactly the units `docs/decisions/layout.md` names. Making the
+workspace root a package is the third option and is a change to that record
+rather than to this one. Which of the three is right is not settled here, and
+issue #8 stays open holding it.
 
 Until the check exists the rule is held by whoever reads a change, which is worth
 saying plainly rather than leaving a reader to assume a mechanism stands behind

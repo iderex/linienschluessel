@@ -7,16 +7,27 @@ decisions that are easy to get wrong quietly: what order things are in, how they
 are added up, where randomness comes from, and what the output says about
 itself.
 
-Nothing in this repository refuses a violation of this record today, because
-there is no source tree here yet:
+Nothing in this repository refuses a violation of this record today. There is a
+source tree now, and the crate this record's rules belong to holds nothing.
+`docs/decisions/layout.md` puts the ordered containers, the summation order, the
+comparison rule and the seed derivation in `assoc-determinism`. Read at
+a23385a:
 
-    git ls-files 'crates' 'crates/*' '*.rs' 'Cargo.toml' ; echo "exit=$?"
-    exit=0
+    git grep -l '' -- '*.rs' | cut -d/ -f2 | sort -u
+    spectro-contract
+
+    git grep -c '' -- crates/assoc-determinism/src/lib.rs ; echo "exit=$?"
+    exit=1
+
+One crate in the workspace holds any Rust at all and it is not that one, so the
+reason has moved from an empty repository to an empty crate and the conclusion
+has not moved with it.
 
 That is also why issue #19 is not closed by this file. Its Done-when asks for a
 test that runs one input twice at different thread counts and compares the
 output bytes, and for a linked run where a deliberately introduced
-nondeterminism makes that test red. Both need a program.
+nondeterminism makes that test red. Both need a program, and what the tree now
+carries is a reader rather than a run.
 
 ## Three claims, kept apart
 

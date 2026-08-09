@@ -10,11 +10,19 @@ available, which is the same transition seen twice.
 
 So the object is not a function. This record says what it is instead.
 
-Nothing in this repository refuses a violation of this record today, because
-there is no source tree here yet:
+Nothing in this repository refuses a violation of this record today. There is a
+source tree now and the crate that would carry these objects holds nothing.
+`docs/decisions/layout.md` puts observations, hypotheses and mutual exclusion in
+`assoc-model`. Read at a23385a:
 
-    git ls-files 'crates' 'crates/*' '*.rs' 'Cargo.toml' ; echo "exit=$?"
-    exit=0
+    git grep -c '' -- crates/assoc-model/src/lib.rs ; echo "exit=$?"
+    exit=1
+
+    git grep -l '' -- '*.rs' | cut -d/ -f2 | sort -u
+    spectro-contract
+
+So the reason has moved from an empty repository to an empty crate, and the
+conclusion is the one it was before.
 
 That is also why issue #11 is not closed by this file. Its Done-when asks that
 the type in the tree match the document and be greppable, and there is no type.

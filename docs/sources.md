@@ -114,6 +114,16 @@ None of it:
     git ls-files 'tests/fixtures' 'tests/fixtures/*' ; echo "exit=$?"
     exit=0
 
+That path was the only place a data file could have been when the command was
+first written down. There is a source tree now, so the same question is asked of
+it: every tracked file under `crates/` is Rust or a manifest, and none of them
+is a table.
+
+    git ls-files -- crates | grep -vE '\.rs$|\.toml$' ; echo "grep exit=$?"
+    grep exit=1
+
+Read at a23385a.
+
 Whether it may is entry 2 of issue #1 and is the maintainer's to answer. This
 entry is what that answer needs in front of it, because the two statements above
 are not the same question, and an extract carried under a belief about the wrong
@@ -125,7 +135,15 @@ Issue #60 asks for two more things and neither exists.
 
 An answer file naming the sources it used and the attribution each requires,
 derived from this file rather than restated in code. There is no answer file and
-no code, because this repository has no source tree.
+nothing that would write one. `docs/decisions/layout.md` puts the answer schema,
+the provenance allowlist and the writer in `spectro-answer`, and that crate is
+empty:
+
+    git grep -c '' -- crates/spectro-answer/src/lib.rs ; echo "exit=$?"
+    exit=1
+
+Read at a23385a. There is code in this repository now, in one crate of thirteen,
+and it reads inputs rather than emitting answers.
 
 A test asserting that a run reading a source with an attribution requirement
 produces an answer file carrying it. Same reason.

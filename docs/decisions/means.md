@@ -1,15 +1,29 @@
 # The implementation language and toolchain
 
 Decision record for issue #2. The core of this board is written in Rust, built
-with cargo, against a toolchain version pinned in a tracked file. Nothing in
-this repository has a language yet, and this record is here so that the first
-source file inherits a decision rather than making one.
+with cargo, against a toolchain version pinned in a tracked file. This record
+was written before the first source file so that the first one would inherit a
+decision rather than make one, and the source files are here now. Read at
+a23385a:
 
-Nothing in this repository refuses a violation of this record today, because
-there is no source tree here to refuse anything. Issue #3 is where the layout
-that carries the boundary between the engine and the spectroscopy is drawn, and
-issue #4 is where the toolchain version and the dependency lock become tracked
-files that a build refuses to proceed without.
+    git ls-files 'crates/*/src/lib.rs' | wc -l
+    13
+    git grep -l '' -- '*.rs' | cut -d/ -f2 | sort -u
+    spectro-contract
+
+Thirteen crates, and one of them holding every line of Rust in the repository.
+The channel and the dependency lock are tracked beside them:
+
+    git ls-files 'rust-toolchain.toml' 'Cargo.lock'
+    Cargo.lock
+    rust-toolchain.toml
+
+What that does not amount to is a build that refuses to proceed without them,
+which is issue #4's and is not this record's to claim. Issue #3 is where the
+layout that carries the boundary between the engine and the spectroscopy is
+drawn, and what refuses a violation of that boundary, together with how narrow
+the refusal is, is measured in `docs/decisions/layout.md` rather than restated
+here.
 
 ## The five points, answered
 

@@ -7,16 +7,31 @@ a search, and a posterior over what survived. That half can be built and tested
 without a wavelength in sight, and this record draws the line between the two
 halves before there is any code to draw it through.
 
-Nothing in this repository refuses a violation of this record today, because
-there is no source tree here for anything to refuse:
+The tree this record describes exists. Read at a23385a:
 
-    git ls-files 'crates' 'crates/*' '*.rs' 'Cargo.toml' ; echo "exit=$?"
+    git ls-files 'crates' 'crates/*' '*.rs' 'Cargo.toml' | wc -l
+    37
+
+    grep -c '^    "crates/' Cargo.toml
+    13
+
+Part of this record is now refused by something rather than only stated, and the
+section on the dependency edge below carries both the measurement and how narrow
+it is. The greppable half is refused by nothing, and the section carrying the
+word list names issue #53 as where that check is owed.
+
+One unit this record names is absent from the workspace. It describes a binary
+crate above both sides, and the thirteen members are all libraries:
+
+    git ls-files '*/src/main.rs' 'crates/*/src/bin' ; echo "exit=$?"
     exit=0
+    git grep -c '\[\[bin\]\]' -- 'crates' ; echo "grep exit=$?"
+    grep exit=1
 
-That is also why issue #3 is not closed by this file. Its Done-when asks for a
-tree that matches the document, and the tree is the half that does not exist.
-The reason is written into #3 rather than left to be inferred from an open
-issue.
+Issue #74 is where the workspace landed and where that unit is still owed, with
+the reason it was left out written into it. Issue #3 asks for a tree that
+matches this document; what remains of that half is written into #3 rather than
+left to be inferred.
 
 ## Why the line is drawn now and not later
 
@@ -92,42 +107,70 @@ argued before the crate that carries it existed.
 ## The boundary is a dependency edge, not a convention
 
 No `assoc-` crate declares a dependency on any `spectro-` crate. That sentence
-is worth more than a naming convention because the compiler refuses the
-violation, and the refusal was measured rather than assumed.
+is worth more than a naming convention because the toolchain refuses the
+violation, and the refusal is measured in this workspace rather than in a
+scratch one somewhere else.
 
-Two crates were built in a scratch workspace, `assoc-model` with no declared
-dependencies and `spectro-quantity` depending on it by path. Adding to
-`assoc-model` a function returning a type from `spectro-quantity`, without
-touching either manifest, is refused by `cargo build --offline`, twice, once for
-the return type and once for the constructor:
+Adding to `crates/assoc-model/src/lib.rs` a function returning a type from
+`spectro-candidates`, without touching either manifest, is refused by
+`cargo build --offline -p assoc-model`, twice, once for the return type and once
+for the constructor:
 
-    error[E0433]: cannot find module or crate `spectro_quantity` in this scope
-      = help: if you wanted to use a crate named `spectro_quantity`, use
-        `cargo add spectro_quantity` to add it to your `Cargo.toml`
+    error[E0433]: cannot find module or crate `spectro_candidates` in this scope
+      = help: if you wanted to use a crate named `spectro_candidates`, use
+        `cargo add spectro_candidates` to add it to your `Cargo.toml`
 
 The obvious way round it is to take the help text and declare the dependency,
 and that is refused too, before any source file is read:
 
     error: cyclic package dependency: package `assoc-model` depends on itself.
     Cycle: package `assoc-model` ... which satisfies path dependency
-    `assoc-model` of package `spectro-quantity` ... which satisfies path
-    dependency `spectro-quantity` of package `assoc-model`
+    `assoc-model` of package `spectro-candidates` ... which satisfies path
+    dependency `spectro-candidates` of package `assoc-model`
 
 Absolute paths in both messages are elided and the elision is deliberate: a
 tracked file quoting a working directory carries a user name into a public
 repository, which is what issue #59 exists to refuse in the answer files. The
 recipe above reconstructs both messages for a reader who wants them.
 
-The toolchain was cargo 1.97.0 and rustc 1.97.0 on x86_64-pc-windows-msvc. Both
-messages are diagnostics of one toolchain version and not a promise about every
-future one. What they establish is that on this board the boundary has a
-mechanism behind it as soon as the workspace exists, and that the mechanism
-refuses both the direct violation and the first thing somebody reaches for to
-work around it.
+The toolchain was cargo 1.97.0 and rustc 1.97.0 on x86_64-pc-windows-msvc,
+which is the channel `rust-toolchain.toml` pins. Both messages are diagnostics
+of one toolchain version and not a promise about every future one.
 
-The cycle only bites while the dependency runs the other way. A `spectro-` crate
-that depends on no `assoc-` crate at all leaves the reverse edge legal, so the
-grep below is not redundant with the compiler and neither replaces the other.
+The second refusal is narrower than the first and the width of it is now
+countable instead of argued. Cargo refuses the cycle only because
+`spectro-candidates` already depends on `assoc-model`. Three crates declare such
+an edge and every other crate declares none:
+
+    git grep -n 'assoc-model = { path' -- 'crates/*/Cargo.toml'
+    crates/assoc-solve/Cargo.toml:9:assoc-model = { path = "../assoc-model" }
+    crates/spectro-candidates/Cargo.toml:10:assoc-model = { path = "../assoc-model" }
+    crates/spectro-objective/Cargo.toml:10:assoc-model = { path = "../assoc-model" }
+
+Five `assoc-` crates and eight `spectro-` crates make forty ordered pairs in the
+forbidden direction. Two of them close a cycle, `assoc-model` on
+`spectro-candidates` and `assoc-model` on `spectro-objective`. Those two are
+what the grep above implies; the other thirty-eight are derived from the same
+grep rather than each being run, and what they are derived to is that cargo
+accepts them.
+
+One of the thirty-eight was run rather than derived, and it is worth pasting
+because it is the failure this section would otherwise be read as excluding.
+`spectro-quantity` has no edge back. Naming it from inside `assoc-model` and
+declaring the dependency the help text suggested compiles:
+
+    pub use spectro_quantity as _;
+
+    cargo build --offline -p assoc-model
+    warning: unused import: `spectro_quantity as _`
+        Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.47s
+    exit=0
+
+A warning, and the build succeeds. So rustc covers the violation written in
+code only while no manifest declares the edge, and cargo covers the manifest
+only where the reverse edge is already there. Thirty-eight of the forty pairs
+have neither in front of them today, which is why the grep below is not
+redundant with the toolchain and neither replaces the other.
 
 ## The greppable half, and what it cannot catch
 
@@ -149,7 +192,7 @@ the boundary test in prose is what covers it, which is to say a reader covers
 it. The condition that would close it is a check reading the parsed identifiers
 of the crate rather than its bytes, at which point `level` as a field name on an
 association type is distinguishable from `level` in `log_level`, and that is a
-larger tool than this board needs before it has a tree.
+larger tool than this board needs today.
 
 The list is the check's data rather than a paragraph in this file, for the same
 reason `docs/quality-parity.md` prints its lists rather than remembering them.

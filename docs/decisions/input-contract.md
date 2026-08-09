@@ -198,15 +198,40 @@ against a snapshot rather than against whatever a server returns that day.
 Retrieving a snapshot is a real operation this board performs and it happens
 before a run, not inside one, which is issue #25.
 
-## What the validator has to do, and that it does not exist
+## What the validator has to do, and where it now is
 
-No validator exists in this repository. There is no source tree here yet, so the
-sentence "a validator accepts a conforming file and refuses one with a missing
-or unlabelled field" is a requirement and not a description, and issue #18 stays
-open carrying it.
+A validator exists. It is `crates/spectro-contract`, it landed under issue #18,
+which is closed, and the entry points are the five functions the crate exports:
 
-What it owes when it lands. It accepts a conforming level set, line list and
-rate table. It refuses, naming the field and the line: an absent
+    git grep -n 'pub fn validate_' -- crates/spectro-contract/src/lib.rs
+    crates/spectro-contract/src/lib.rs:44:pub fn validate_level_set(bytes: &[u8]) -> Result<(), Refusals> {
+    crates/spectro-contract/src/lib.rs:49:pub fn validate_line_list(bytes: &[u8]) -> Result<(), Refusals> {
+    crates/spectro-contract/src/lib.rs:54:pub fn validate_rate_table(bytes: &[u8]) -> Result<(), Refusals> {
+    crates/spectro-contract/src/lib.rs:59:pub fn validate_covariance(bytes: &[u8]) -> Result<(), Refusals> {
+    crates/spectro-contract/src/lib.rs:68:pub fn validate_input(
+
+Read at a23385a. The sentence that stood here, that no validator exists and the
+list below is a requirement rather than a description, is no longer the state of
+the repository.
+
+What the tree above is and is not evidence of. That the five functions exist was
+read off it. Whether every clause below is discharged by them was not measured
+in writing this record and nothing here asserts it.
+`crates/spectro-contract/tests/` is where that argument lives and issue #18 is
+where it was made. What those files hold, and it is the whole of what this
+workspace runs:
+
+    git grep -c '#\[test\]' -- crates/spectro-contract/tests
+    crates/spectro-contract/tests/the_level_set_reader.rs:9
+    crates/spectro-contract/tests/the_validator_refuses.rs:48
+
+    cargo test --offline 2>&1 | grep -oE '^test result: ok\. [0-9]+ passed' \
+      | awk '{s+=$4} END {print s}'
+    57
+
+What the crate is answerable to, which is this record's half of it. It accepts a
+conforming level set, line list and rate table. It refuses, naming the field and
+the line: an absent
 `contract_version`; a major version it does not know; an absent required column,
 which is not the same as an empty value in a present one; a value outside a
 declared vocabulary; an `intensity` with no `intensity_scale`; an

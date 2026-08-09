@@ -1,0 +1,24 @@
+# A deliberate finding in a workflow, for the measurement issue #52 asks for.
+# Not for merging. Nothing triggers this except a hand-typed dispatch, and the
+# branch it sits on is never merged.
+name: seeded finding
+
+on:
+  workflow_dispatch:
+    inputs:
+      subject:
+        description: text to echo
+        required: true
+
+permissions: {}
+
+jobs:
+  echo:
+    name: Echo the subject
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Echo
+        run: echo "${{ github.event.inputs.subject }}"

@@ -18,6 +18,7 @@
 pub mod accuracy;
 pub mod nist_asd_levels;
 pub mod nist_asd_lines;
+pub mod seeded_finding;
 
 pub use accuracy::AccuracyGrade;
 pub use nist_asd_lines::{Conversion, Naming, NotTaken};

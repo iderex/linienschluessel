@@ -42,20 +42,69 @@ Run 2026-08-07. Thirteen contexts.
     gh api repos/iderex/linienschluessel/rules/branches/main \
       --jq '.[] | select(.type=="required_status_checks")
             | .parameters.required_status_checks[].context'
-    (no output)
+    DCO sign-off
+    dependency-review
+    Reject Trojan Source Unicode
+    Audit workflows (zizmor)
+    Coverage on the deciding surface
 
     gh api repos/iderex/linienschluessel/rules/branches/main \
       --jq '[.[].type] | sort | join(", ")'
-    deletion, non_fast_forward, pull_request
+    deletion, non_fast_forward, pull_request, required_status_checks
 
-Run 2026-08-07. No status check is required to merge here.
+Run 2026-08-09. Five contexts, against thirteen on the target. That is a
+deviation of content and no longer a deviation of kind: a red check here stops a
+merge, so the word "exists" in the table below means the check runs, and for
+these five it also means the check gates.
 
-That is the largest deviation on this page and it is not a deviation of content.
-Four workflows run on a pull request in this repository and pass, and none of
-them can stop a merge, so every claim that a guard caught something rests on
-somebody having looked. Issue #69 carries it, and until it lands, the word
-"exists" in the table below means the check runs and reports, never that it
-gates.
+The number was zero until 2026-08-09 and the sentence that stood here said so.
+While it was zero, every claim that a guard caught something rested on somebody
+having looked at a run before the branch went away, because a red check on a
+pull request that merges anyway leaves the same trace as a green one.
+
+## What runs on a pull request and is not in that set
+
+The required set is not every name a pull request reports under. On the head
+commit of #87:
+
+    gh api repos/iderex/linienschluessel/commits/01b5984/check-runs \
+      --jq '.check_runs[] | "\(.name)\t\(.conclusion)"' | sort | uniq -c
+      1 Audit workflows (zizmor)	success
+      1 Coverage on the deciding surface	success
+      1 DCO sign-off	success
+      1 dependency-review	success
+      2 Reject Trojan Source Unicode	success
+      1 zizmor	success
+
+Six names, seven runs. `Reject Trojan Source Unicode` appears twice because
+`unicode-guard.yml` triggers on both push and pull request and names the job
+once, and one required context covers both runs rather than two contexts being
+owed. `zizmor` is the sixth name and it is not required.
+
+One further name exists and cannot be required. `Scorecard analysis` runs on
+push and not on a pull request, so it never reports on a head commit a merge is
+waiting on:
+
+    gh api repos/iderex/linienschluessel/commits/7e38065/check-runs \
+      --jq '.check_runs[].name' | sort
+    Audit workflows (zizmor)
+    Coverage on the deciding surface
+    Reject Trojan Source Unicode
+    Scorecard analysis
+
+Read 2026-08-09 on the merge commit of #87. A required context that never
+reports would block every merge instead of gating one, so a check that runs only
+on push is reported and never required, and that is a property of its trigger
+rather than a judgement about its value.
+
+## What is still not required, and is owed
+
+`build`, `test`, `format` and `lint` are #5's and none of them exists yet, so
+none of them is in the set above. Adding a check to the required set is a second
+settings change after the check's first green run, and that ordering is now the
+normal case here rather than a thing to decide once: a context cannot be
+required before it has reported, and the set above was set from what had already
+run.
 
 ## The map
 
@@ -191,9 +240,15 @@ three, and it will keep saying nothing about a crate until that crate has a line
 in it. What it does do from the first such line is fall, because an untested
 module arrives as uncovered lines in the denominator.
 
-It gates nothing. No status check is required to merge on this board, which is
-the deviation at the top of this page and is #69's, so this job reports and
-reports only.
+It gates. `Coverage on the deciding surface` is one of the five contexts the
+ruleset requires, read at the top of this page on 2026-08-09, so a fall below
+the bar stops a merge rather than only reporting one. The sentence that stood
+here said this job reports and reports only, which was true while nothing on
+this board was required.
+
+What that does not change is the hole above it. A gate over an aggregate is
+still an aggregate, so the number stopping a merge is one this section has
+already said is `spectro-contract`'s alone.
 
 One crate that decides an assignment is not on the list. `spectro-quantity`
 holds the conversions of `docs/decisions/line-position.md` and is the only place

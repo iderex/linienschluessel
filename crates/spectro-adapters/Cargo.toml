@@ -3,3 +3,9 @@ name = "spectro-adapters"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
+
+# The only edge this crate needs. An adapter emits a file the readers accept,
+# so it shares their refusal vocabulary rather than inventing a second one, and
+# a test can hand what it emitted straight back to the validator.
+[dependencies]
+spectro-contract = { path = "../spectro-contract" }

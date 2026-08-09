@@ -107,6 +107,22 @@ this board's assignments with upstream values is the place that question
 actually bites, and how far it reaches is a question about the answer format
 rather than about this file.
 
+### What the exports are shaped like
+
+Terms are what this entry was written to answer and a column layout is a
+different question, so the layouts sit beside the code that reads them: the
+levels export in `crates/spectro-adapters/src/nist_asd_levels.rs` and the lines
+export in `crates/spectro-adapters/src/nist_asd_lines.rs`, each with the query
+that produced it and the date it was retrieved.
+
+One fact about them belongs here rather than in either module, because it is a
+property of the source and not of one reader. The query does not fix the column
+list. Two levels exports retrieved on 2026-08-09 with one query string,
+differing only in the species asked for, answered with ten columns and with
+eleven, the extra one being the measured Lande factor. So a column list written
+down once, here or anywhere, would describe some exports of this source and not
+others, and a reader of either export has to find its columns by their labels.
+
 ### Whether this repository carries any of it
 
 None of it:

@@ -6,11 +6,20 @@ the run that produces such a number is set up, which is the other half and the
 one where the whole exercise can be invalidated without any metric looking
 wrong.
 
-No validation run has been performed in this repository, and there is nothing
-here to perform one with:
+No validation run has been performed in this repository, and there is still
+nothing here to perform one with. There is a source tree now, and what it holds
+is the input reader. Read at a23385a:
 
-    git ls-files 'crates' 'crates/*' '*.rs' 'Cargo.toml' ; echo "exit=$?"
+    git grep -l '' -- '*.rs' | cut -d/ -f2 | sort -u
+    spectro-contract
+
+    git ls-files '*/src/main.rs' 'crates/*/src/bin' ; echo "exit=$?"
     exit=0
+
+One crate of thirteen holds any code and there is no binary target to invoke, so
+the sentence changed and the state it describes did not. A run needs the
+candidates, the objective, the solver and the posterior, and every crate
+`docs/decisions/layout.md` puts those in is empty.
 
 Issue #45 is not closed by this file. Its Done-when asks for a command that runs
 each procedure and for a test over a small fixture whose truth is known by

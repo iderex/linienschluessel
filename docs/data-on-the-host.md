@@ -62,15 +62,28 @@ Run against this repository as it stands:
     git grep -nE 'std::net|TcpStream|TcpListener|UdpSocket|reqwest|hyper|ureq|curl::|tokio::net|SocketAddr|to_socket_addrs' -- 'crates' ; echo "grep exit=$?"
     grep exit=1
 
-That result is worth nothing and is printed anyway, because a reader who sees a
-clean grep should also see why it is clean:
+That result is worth very little and is printed anyway, because a reader who
+sees a clean grep should also see how much of this board it covered. Read at
+a23385a:
 
-    git ls-files 'crates' 'crates/*' '*.rs' 'Cargo.toml' ; echo "exit=$?"
-    exit=0
+    git ls-files 'crates/*/src/lib.rs' | wc -l
+    13
+    git grep -l '' -- 'crates/*/src/lib.rs' | wc -l
+    1
 
-There is no source tree here, so the grep searched nothing and found nothing.
-An empty tree passing a check is not evidence of a property, and this record
-says so rather than letting the first sentence stand alone.
+    git grep -l '' -- '*.rs' | cut -d/ -f2 | sort -u
+    spectro-contract
+
+Thirteen crates, twelve of them holding a `lib.rs` with nothing in it, and every
+line of Rust in this repository sitting in the thirteenth. So the grep has moved
+from searching an empty tree to searching one crate, and that crate is the input
+reader, which `docs/decisions/input-contract.md` already requires to be
+satisfiable by a file on disk. The parts of a run that would have a reason to
+open a socket are the retrieval paths of issues #22 and #23, and neither those
+nor a run that would call them is written yet.
+
+A clean grep over one crate out of thirteen is not evidence of the property this
+record states. The sentence has changed and the conclusion has not.
 
 The half that will be worth something is a run of the whole pipeline with no
 network route available, asserting it succeeds. A grep can be walked around by

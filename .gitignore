@@ -1,0 +1,19 @@
+# What this tree refuses to carry, decided here rather than in each clone.
+#
+# Every entry is a path a command this repository already runs writes into the
+# working tree. Without a tracked file the answer comes from whatever each
+# contributor's own configuration says, and two contributors then disagree about
+# what a checkout contains without either of them doing anything wrong. That is
+# the same reason .gitattributes is tracked one file over, for the bytes of a
+# fixture rather than for the presence of a directory.
+#
+# Every entry is anchored to the repository root with a leading slash. A
+# directory somebody later names target inside a crate is a different thing, and
+# an unanchored pattern would swallow it without anybody deciding to.
+
+# Cargo writes here, for every profile and for the coverage instrumentation.
+/target
+
+# The report .github/workflows/coverage.yml writes at the root, which a
+# contributor reproducing that measurement locally gets too.
+/coverage.json

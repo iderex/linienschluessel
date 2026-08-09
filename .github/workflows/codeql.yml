@@ -1,0 +1,88 @@
+# The code scanner, for issue #52.
+#
+# docs/quality-parity.md records that the scanner the target gate runs supports
+# the language chosen here, so this is that same scanner over a different
+# language rather than a named replacement. That paragraph is the thing to
+# correct if it stops being true, and this file is not a second copy of it.
+#
+# Two languages, because two are extractable from this tree and both carry
+# risk this board cares about. `rust` is where a malformed input file is turned
+# into objects a run then trusts. `actions` is the workflow YAML, which decides
+# what every other check is worth. The pair is not chosen here: it is what the
+# platform derives from the tree, printed rather than asserted:
+#
+#     gh api repos/iderex/linienschluessel/code-scanning/default-setup \
+#       --jq '.languages | join(" ")'
+#     actions rust
+#
+# Read 2026-08-09, with default setup not configured, so nothing on the server
+# side is analysing this repository and this workflow is the whole of it.
+#
+# WHAT THIS JOB DOES NOT DO, and the sentence is here because the check name
+# below is the one a reader will look at. This job reports whether the analysis
+# ran. It does not report whether the analysis found anything: an alert is
+# raised against the repository and this job still succeeds. The check that goes
+# red on a finding is the code scanning results check the platform reports
+# separately, and it is a different context from the two this file produces. A
+# green run of `Analyze (rust)` therefore means the scan completed, and it means
+# nothing at all about what the scan saw.
+#
+# No schedule. Every trigger below is a change to this tree, so a query pack
+# that grows a new rule does not re-score code nobody has touched since, and
+# this file states that rather than a weekly run implying it. Whether recurring
+# runs are paid for here is entry 8 of #1 and is not decided by a workflow.
+#
+# Nothing here is required to merge. The required set is what
+# docs/quality-parity.md prints from the ruleset, and adding a context to it is
+# a settings change made after the context has reported at least once.
+name: CodeQL
+
+on:
+  # main so that the alerts a pull request is diffed against have a baseline;
+  # without a scan of the default branch every finding on a branch reads as new.
+  push:
+    branches: [main]
+  pull_request:
+    branches: ["**"]
+
+# Explicit deny-all at workflow level; the job grants only what it needs.
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      security-events: write # write the alerts this analysis produces
+      contents: read # checkout the tree to analyse
+      actions: read # read the workflow files for the actions analysis
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: rust
+            build-mode: none
+          - language: actions
+            build-mode: none
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # No step pushes via git, so do not persist the GITHUB_TOKEN.
+          persist-credentials: false
+
+      - name: Initialise CodeQL
+        uses: github/codeql-action/init@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4.37.3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      - name: Analyse
+        uses: github/codeql-action/analyze@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4.37.3
+        with:
+          category: "/language:${{ matrix.language }}"

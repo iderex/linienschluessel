@@ -1,0 +1,218 @@
+# The invariants this board's decision records argued for, for issue #53.
+#
+# Each entry below is one rule a record decided, expressed as a pattern over a
+# stated part of the tree. The entry names the record, so somebody who trips the
+# check reads the argument rather than working around the pattern, and it names
+# the plausible mistake it exists to catch.
+#
+# Three things make this more than a grep in a job nobody reads.
+#
+# The table is data. A row carries an id, the record it comes from, the paths it
+# searches, the pattern, and the mistake that demonstrates it. Adding a rule is
+# adding a row.
+#
+# The table is checked before it is applied. A row missing a field, a row naming
+# a record that is not tracked, and a row whose declared demonstration its own
+# pattern does not match all red this job. The last of those is the one that
+# stops a rule decaying into decoration: a pattern that no longer catches the
+# mistake it was written for cannot sit here looking green.
+#
+# Every entry prints the size of what it searched, and the Rust part of it
+# separately. Most crates on this board hold nothing but a manifest today, so
+# several of these rules search a surface with no identifier in it, and their
+# clean result is worth what a clean search over nothing is worth. The job says
+# which is which and counts them in its last line, because a run that covered
+# almost nothing must not read like a run that covered everything and found
+# nothing.
+#
+# The table sits here rather than under crates/, because a pattern stored inside
+# the tree it searches matches its own explanation and can never come back clean.
+name: invariants
+
+on:
+  # Both triggers, deliberately. push covers a branch pushed without a pull
+  # request, which is how a seeded violation is demonstrated; pull_request covers
+  # a branch that lives in a fork, which push in this repository never sees.
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  invariants:
+    name: Invariants from the decision records
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # No step pushes via git, so do not persist the GITHUB_TOKEN.
+          persist-credentials: false
+
+      - name: Write the table
+        env:
+          # The rules, as data. Five lines per rule: what it is called, the
+          # record that argued for it, the paths it searches, the pattern, and
+          # the plausible mistake it exists to catch. Nothing below this block
+          # knows any rule by name.
+          TABLE: |
+            id no-network-call-inside-a-run
+            record docs/data-on-the-host.md
+            paths crates
+            pattern std::net|TcpStream|TcpListener|UdpSocket|SocketAddr|to_socket_addrs|reqwest|hyper|ureq|curl::|tokio::net
+            demo let body = ureq::get(url).call()?.into_string()?;
+
+            id no-medium-conversion-outside-spectro-quantity
+            record docs/decisions/line-position.md
+            paths crates :!crates/spectro-quantity
+            pattern refract|peck|reeder|to_vacuum|to_air
+            demo fn air_to_vacuum(lambda_air: f64) -> f64 {
+
+            id no-adapter-reached-from-the-rest-of-the-tree
+            record docs/decisions/layout.md
+            paths crates :!crates/spectro-adapters
+            pattern spectro[-_]adapters
+            demo use spectro_adapters::nist_asd_lines::read;
+
+            id no-score-contribution-outside-spectro-objective
+            record docs/decisions/layout.md
+            paths crates :!crates/spectro-objective
+            pattern fn +[a-z0-9_]*(score|log_odds|contribution)[a-z0-9_]*\(
+            demo fn position_score(residual: f64, sigma: f64) -> f64 {
+
+            id no-spectroscopic-identifier-on-the-generic-side
+            record docs/decisions/layout.md
+            paths crates/assoc-*
+            pattern wavelength|wavenumber|kayser|parity|multipole|ritz|vacuum|angstrom|spectrum|spectra|ionisation|ionization|transition
+            demo pub struct Observation { pub wavenumber: f64 }
+
+            id no-constant-tolerance-in-candidate-generation
+            record docs/decisions/uncertainty-model.md
+            paths crates/spectro-candidates
+            pattern (const|static) +[A-Za-z0-9_]*TOL|tolerance *(:[^=]*)?= *[-0-9.]
+            demo const MATCH_TOLERANCE: f64 = 0.05;
+
+            id no-absolute-intensity-comparison-across-spectra
+            record docs/decisions/intensities.md
+            paths crates/spectro-objective
+            pattern fn +[a-z0-9_]+ *\([^)]*spectrum[^)]*spectrum
+            demo fn brighter(a: &Feature, a_spectrum: &SpectrumId, b: &Feature, b_spectrum: &SpectrumId) -> bool {
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/invariants"
+          printf '%s' "$TABLE" > "${RUNNER_TEMP}/invariants/table"
+          rows=$(awk '$1=="id"{n++} END{print n+0}' "${RUNNER_TEMP}/invariants/table")
+          if [ "$rows" -eq 0 ]; then
+            echo "::error::The invariant table is empty. A run over no rule is not a run that found no violation."
+            exit 1
+          fi
+          echo "${rows} invariant(s) declared."
+
+      - name: Refuse a malformed table, and a rule its own demonstration does not trip
+        run: |
+          set -euo pipefail
+          set -f
+          table="${RUNNER_TEMP}/invariants/table"
+          bad=0
+          seen=""
+
+          # One record per field, so a row that is missing one is caught by name
+          # rather than by the loop below behaving oddly further down.
+          for field in id record paths pattern demo; do
+            n=$(awk -v f="$field" '$1==f{n++} END{print n+0}' "$table")
+            total=$(awk '$1=="id"{n++} END{print n+0}' "$table")
+            if [ "$n" -ne "$total" ]; then
+              echo "::error::${n} row(s) carry a '${field}' and ${total} rule(s) are declared. Every rule carries every field."
+              bad=1
+            fi
+          done
+
+          while IFS= read -r id; do
+            record=$(awk -v k="$id" '$1=="id"&&$2==k{f=1;next} f&&$1=="record"{print substr($0,8);exit}' "$table")
+            pattern=$(awk -v k="$id" '$1=="id"&&$2==k{f=1;next} f&&$1=="pattern"{print substr($0,9);exit}' "$table")
+            demo=$(awk -v k="$id" '$1=="id"&&$2==k{f=1;next} f&&$1=="demo"{print substr($0,6);exit}' "$table")
+
+            case " ${seen} " in
+              *" ${id} "*)
+                echo "::error::Two rules are declared under the id '${id}'."
+                bad=1
+                ;;
+            esac
+            seen="${seen} ${id}"
+
+            if [ -z "$(git ls-files -- "$record")" ]; then
+              echo "::error::Rule '${id}' names the record ${record}, which is not tracked in this tree."
+              bad=1
+            fi
+
+            # The demonstration is the plausible mistake the rule exists to
+            # catch, and this is where it is proved to be one. A pattern that no
+            # longer matches its own declared mistake is a rule that has stopped
+            # working, and it would otherwise sit here green for ever.
+            if ! printf '%s\n' "$demo" | grep -Eqi -- "$pattern"; then
+              echo "::error::Rule '${id}' does not match its own declared demonstration. Either the pattern or the demonstration is wrong."
+              bad=1
+            fi
+          done <<< "$(awk '$1=="id"{print $2}' "$table")"
+
+          if [ "$bad" -ne 0 ]; then
+            exit 1
+          fi
+          echo "The table is well formed and every rule trips its own demonstration."
+
+      - name: Apply each invariant, and say what each one searched
+        run: |
+          set -euo pipefail
+          set -f
+          table="${RUNNER_TEMP}/invariants/table"
+          violations=0
+          empty=0
+          rules=0
+
+          while IFS= read -r id; do
+            record=$(awk -v k="$id" '$1=="id"&&$2==k{f=1;next} f&&$1=="record"{print substr($0,8);exit}' "$table")
+            paths=$(awk -v k="$id" '$1=="id"&&$2==k{f=1;next} f&&$1=="paths"{print substr($0,7);exit}' "$table")
+            pattern=$(awk -v k="$id" '$1=="id"&&$2==k{f=1;next} f&&$1=="pattern"{print substr($0,9);exit}' "$table")
+            rules=$((rules + 1))
+
+            # What the search covered, printed whether or not it found anything,
+            # and the Rust part of it separately. Every rule here is about what
+            # is written in code, so a surface that is nothing but manifests is
+            # a surface the rule cannot yet be violated in, and its clean result
+            # has to read differently from a clean result over a crate full of
+            # source.
+            all=$(git grep -c -e '' -- $paths 2>/dev/null | awk -F: '{f++; s+=$NF} END{printf "%d %d", f+0, s+0}' || true)
+            code=$(git grep -c -e '' -- $paths 2>/dev/null | grep '\.rs:' | awk -F: '{f++; s+=$NF} END{printf "%d %d", f+0, s+0}' || true)
+            files=${all% *}
+            lines=${all#* }
+            rsfiles=${code% *}
+            rslines=${code#* }
+
+            if git grep -nEi -e "$pattern" -- $paths; then
+              echo "::error::${id}: refused. ${record} is where this rule is argued."
+              violations=$((violations + 1))
+              continue
+            fi
+
+            if [ "$rsfiles" -eq 0 ]; then
+              empty=$((empty + 1))
+              echo "${id}: clean, and the clean result is worth nothing. [${paths}] holds ${files} tracked file(s) and no Rust with anything in it, so there is no identifier for this rule to have refused. Record: ${record}"
+            else
+              echo "${id}: clean over ${rsfiles} Rust file(s), ${rslines} line(s) of Rust, out of ${files} tracked file(s) and ${lines} line(s) under [${paths}]. Record: ${record}"
+            fi
+          done <<< "$(awk '$1=="id"{print $2}' "$table")"
+
+          echo "---"
+          echo "${rules} invariant(s) applied. ${empty} of them searched no Rust at all, so ${empty} clean result(s) above are evidence of nothing. ${violations} refused."
+          if [ "$violations" -ne 0 ]; then
+            exit 1
+          fi

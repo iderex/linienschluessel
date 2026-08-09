@@ -16,7 +16,15 @@
 //! tree is issue #53's and is not landed.
 
 pub mod accuracy;
+pub mod nist_asd_levels;
 pub mod nist_asd_lines;
 
 pub use accuracy::AccuracyGrade;
 pub use nist_asd_lines::{Conversion, Naming, NotTaken};
+
+// The levels export reaches a caller as `nist_asd_levels::Conversion` and
+// `nist_asd_levels::Naming` and is not re-exported here. Two upstream exports
+// need the same two words for two different things, one carrying a spectrum and
+// a line list identifier and the other a species and a level set identifier, and
+// a root that holds one of each pair silently decides which upstream a bare
+// `Naming` means.

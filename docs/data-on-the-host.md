@@ -62,28 +62,37 @@ Run against this repository as it stands:
     git grep -nE 'std::net|TcpStream|TcpListener|UdpSocket|reqwest|hyper|ureq|curl::|tokio::net|SocketAddr|to_socket_addrs' -- 'crates' ; echo "grep exit=$?"
     grep exit=1
 
-That result is worth very little and is printed anyway, because a reader who
-sees a clean grep should also see how much of this board it covered. Read at
-a23385a:
+That result is worth more than it did and still not what this record claims, and
+both halves are printed, because a reader who sees a clean grep should also see
+how much of this board it covered. Read at 2cc14d1:
 
     git ls-files 'crates/*/src/lib.rs' | wc -l
     13
     git grep -l '' -- 'crates/*/src/lib.rs' | wc -l
-    1
+    2
 
     git grep -l '' -- '*.rs' | cut -d/ -f2 | sort -u
+    spectro-adapters
     spectro-contract
 
-Thirteen crates, twelve of them holding a `lib.rs` with nothing in it, and every
-line of Rust in this repository sitting in the thirteenth. So the grep has moved
-from searching an empty tree to searching one crate, and that crate is the input
-reader, which `docs/decisions/input-contract.md` already requires to be
-satisfiable by a file on disk. The parts of a run that would have a reason to
-open a socket are the retrieval paths of issues #22 and #23, and neither those
-nor a run that would call them is written yet.
+    git grep -c '' -- 'crates/*/src/*.rs' 'crates/*/tests/*.rs' \
+      | awk -F: '{f++; s+=$NF} END {print f" files, "s" lines"}'
+    18 files, 4906 lines
 
-A clean grep over one crate out of thirteen is not evidence of the property this
-record states. The sentence has changed and the conclusion has not.
+Thirteen crates, eleven of them holding a `lib.rs` with nothing in it, and every
+line of Rust in this repository sitting in the other two. What changed since the
+count above was last taken is the one thing this record had singled out. It said
+the parts of a run with a reason to open a socket were the retrieval paths of
+issues #22 and #23, and that neither was written. Both are written now, and the
+grep covers both. Neither opens a socket, because `docs/decisions/input-contract.md`
+makes retrieval the operator's act and hands an adapter bytes that are already on
+disk.
+
+So the clean result covers the two places this record expected the violation to
+appear, which is more than a clean search over an empty tree and is still not
+the property. Eleven crates hold nothing, the objective and the solver among
+them, and a grep can be walked around by a dependency that opens the socket on
+the program's behalf. The sentence has changed twice and the conclusion has not.
 
 The half that will be worth something is a run of the whole pipeline with no
 network route available, asserting it succeeds. A grep can be walked around by
@@ -115,9 +124,31 @@ Nothing about federation is planned. This paragraph exists so that if the
 question is ever opened, it is opened against a shape that was decided before
 anybody wanted a particular answer.
 
-## What is not enforced
+## What is enforced, and what that enforcement cannot do
 
-Nothing in this repository refuses a violation of any of the above. The
-invariant check is issue #53's to build and the offline pipeline test needs the
-tree from #3 and the job from #5, so today this record is held by whoever reads a
-change. Issue #58 stays open with that written into it.
+One half of the greppable rule above is refused by a machine, and it was not
+when this record landed. `.github/workflows/invariants.yml` carries the word
+list of this record as a rule named `no-network-call-inside-a-run`, searching
+every path under `crates`, and the rule names this record so that a contributor
+who trips it is sent to the argument rather than to a pattern. It was made red
+on a seeded call, `pub fn local(addr: std::net::SocketAddr)` in
+`assoc-determinism`, in
+https://github.com/iderex/linienschluessel/actions/runs/31306510501, which is
+issue #53's change and is where that proof lives.
+
+Three things that check cannot do, and none of them is small.
+
+It does not stop a merge. The branch ruleset's required contexts are what
+`gh api repos/iderex/linienschluessel/rulesets` prints, and the invariants job is
+not among them, so a red run is read by a person or not at all.
+
+It reads bytes rather than behaviour. A dependency that opens a socket on this
+program's behalf carries none of those words into this tree, and the rule cannot
+see it. That is the case the offline run exists for.
+
+It covers what the grep covers, which is the section above and its two crates
+out of thirteen.
+
+The offline pipeline test is the half with no mechanism at all. It needs a run
+to make, and the job it would run in is issue #5's. Until it exists this record
+is held there by whoever reads a change, and issue #58 stays open holding it.

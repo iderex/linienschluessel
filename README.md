@@ -22,11 +22,11 @@ reasons. The command that reads it is the word list that file carries:
     git grep -nE 'std::net|TcpStream|TcpListener|UdpSocket|reqwest|hyper|ureq|curl::|tokio::net|SocketAddr|to_socket_addrs' -- 'crates' ; echo "grep exit=$?"
     grep exit=1
 
-The clean result is worth very little today and the same file says why. There
-are thirteen crates here and twelve of them hold no code, so the search covered
-one, and a clean search over one crate is not a property. What will be worth
-something is a run of the whole pipeline with no network route available, and
-that does not exist either.
+The clean result is worth more than it did and is still not the property, and
+the same file says why. There are thirteen crates here and eleven of them hold
+no code, so the search covers two, and those two are the readers that take a
+file from your disk. What will be worth something is a run of the whole pipeline
+with no network route available, and that does not exist.
 
 An unpublished spectrum loaded here stays unpublished, under the same rule and
 the same file. Nothing transmits, uploads or reports anything: no telemetry, no

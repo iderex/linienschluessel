@@ -28,6 +28,9 @@ version = "0.0.0"
 [[package]]
 name = "spectro-adapters"
 version = "0.0.0"
+dependencies = [
+ "spectro-contract",
+]
 
 [[package]]
 name = "spectro-answer"

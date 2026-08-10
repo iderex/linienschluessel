@@ -26,6 +26,10 @@ name = "assoc-synth"
 version = "0.0.0"
 
 [[package]]
+name = "linienschluessel"
+version = "0.0.0"
+
+[[package]]
 name = "spectro-adapters"
 version = "0.0.0"
 dependencies = [

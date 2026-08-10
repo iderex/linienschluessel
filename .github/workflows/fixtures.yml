@@ -1,0 +1,241 @@
+# The record every fixture carries, for issue #8.
+#
+# docs/fixtures.md says that a fixture decides what the suite is able to prove,
+# so every fixture file says where it came from, under what terms it is here,
+# and whether it is real or made up. This is what refuses one that says none of
+# those.
+#
+# It sits here rather than under crates/ because the subject is a directory of
+# this repository rather than a unit of the program. No crate owns that. Putting
+# it in one of the fourteen would make an arbitrary crate the keeper of a
+# repository-wide rule, and adding a crate for it would break the property
+# issue #74 measured, that the workspace members are exactly the units
+# docs/decisions/layout.md names. .github/workflows/invariants.yml is here for
+# the same reason and says so in its own comment.
+#
+# What that costs is written down rather than left out. A workflow runs on the
+# server, so it is not run by the command issue #9 asks for before a push, and
+# docs/quality-parity.md prints what a green check on this board is worth today:
+# no status check is required to merge until issue #69 lands, so this refuses a
+# fixture in a run and does not stop a merge.
+#
+# Two things make it more than a grep in a job nobody reads.
+#
+# It judges its own demonstrations before it judges the tree. Five cases are
+# built in the runner's temporary directory every run, four that must be refused
+# and one that must be accepted, and a disagreement on any of them reds the job
+# before the tree is looked at. This repository carries no fixture yet, so
+# without that step the check would sit green over nothing for as long as that
+# stays true, and the first fixture to land would be the first test of a rule
+# nobody had run.
+#
+# It says what it judged. A clean result over no fixture at all is printed as
+# what it is, because a run that covered nothing must not read like a run that
+# covered everything and found nothing.
+name: fixtures
+
+on:
+  # Both triggers, deliberately, in the shape invariants.yml uses. push covers a
+  # branch pushed without a pull request, which is how a seeded violation is
+  # demonstrated; pull_request covers a branch that lives in a fork, which push
+  # in this repository never sees.
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fixtures:
+    name: Every fixture carries its record
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # No step pushes via git, so do not persist the GITHUB_TOKEN.
+          persist-credentials: false
+
+      - name: Write the judgement
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/fixtures"
+          cat > "${RUNNER_TEMP}/fixtures/judge.sh" <<'JUDGE'
+          # Reads a root directory and a file holding one path per line, and
+          # refuses every fixture in that list carrying no record and every
+          # record naming no fixture. Prints one line per refusal saying which
+          # file and what is missing, and exits non-zero if anything was
+          # refused. Knows nothing about git, so the same code judges the tree
+          # and the demonstrations.
+          set -u
+          root="$1"
+          list="$2"
+          refused=0
+          fixtures=0
+          records=0
+
+          # The suffix is docs/fixtures.md's: the fixture's own name with
+          # .origin.md after it, so the record sorts beside the file it is about
+          # and a directory listing shows a missing one.
+          suffix=".origin.md"
+
+          while IFS= read -r path; do
+            [ -n "$path" ] || continue
+            case "$path" in
+              *"$suffix")
+                records=$((records + 1))
+                subject="${path%$suffix}"
+                if ! grep -Fxq -- "$subject" "$list"; then
+                  echo "::error::${path} is a record for ${subject}, which is not here. A record naming no fixture is refused as well, so removing a fixture and leaving its record behind cannot pass as a directory in which every fixture has one."
+                  refused=$((refused + 1))
+                fi
+                ;;
+              *)
+                fixtures=$((fixtures + 1))
+                record="${path}${suffix}"
+                if ! grep -Fxq -- "$record" "$list"; then
+                  echo "::error::${path} carries no record. docs/fixtures.md requires ${record} beside it, saying where the file came from, under what terms it is here, and whether it is real or synthetic."
+                  refused=$((refused + 1))
+                  continue
+                fi
+
+                # A record that exists and says nothing is the failure a
+                # presence check alone would pass, so the fields are read.
+                body=$(tr -d '\r' < "${root}/${record}")
+                for field in Origin Terms Nature; do
+                  if ! printf '%s\n' "$body" | grep -qE "^${field}: *[^[:space:]]"; then
+                    echo "::error::${record} carries no ${field} line with a value. docs/fixtures.md requires the origin, the terms and one word saying real or synthetic."
+                    refused=$((refused + 1))
+                  fi
+                done
+
+                nature=$(printf '%s\n' "$body" | sed -n 's/^Nature: *//p' | head -n 1)
+                case "$nature" in
+                  synthetic)
+                    # A generated file is only reproducible if the thing that
+                    # generated it is in the tree, and only reviewable if it
+                    # says what it was built to prove.
+                    for field in Property Generator; do
+                      if ! printf '%s\n' "$body" | grep -qE "^${field}: *[^[:space:]]"; then
+                        echo "::error::${record} says Nature: synthetic and carries no ${field} line with a value. docs/fixtures.md requires the property the file was built to have and the tracked generator that produced it."
+                        refused=$((refused + 1))
+                      fi
+                    done
+                    ;;
+                  real)
+                    # An extract tidied on the way in is no longer evidence
+                    # about what people publish, and silence about it reads the
+                    # same as an untouched file.
+                    if ! printf '%s\n' "$body" | grep -qE "^Edited-after-retrieval: *[^[:space:]]"; then
+                      echo "::error::${record} says Nature: real and carries no Edited-after-retrieval line with a value. docs/fixtures.md requires a real extract to say whether it was edited after retrieval and, where it was, exactly what changed."
+                      refused=$((refused + 1))
+                    fi
+                    ;;
+                  "")
+                    ;;
+                  *)
+                    echo "::error::${record} says Nature: ${nature}, which is neither real nor synthetic. The two support different claims and a reader should not have to infer which one they are holding."
+                    refused=$((refused + 1))
+                    ;;
+                esac
+                ;;
+            esac
+          done < "$list"
+
+          echo "judged ${fixtures} fixture(s) and ${records} record(s); ${refused} refusal(s)."
+          [ "$refused" -eq 0 ]
+          JUDGE
+          chmod +x "${RUNNER_TEMP}/fixtures/judge.sh"
+
+      - name: Refuse a judgement that does not judge its own demonstrations
+        run: |
+          set -euo pipefail
+          demo="${RUNNER_TEMP}/fixtures/demo"
+          rm -rf "${demo}"
+
+          # Five plausible mistakes and one file that is right, each in its own
+          # directory so a refusal names the case that produced it. The mistakes
+          # are the ones somebody actually makes: forgetting the record, adding
+          # an empty one, saying synthetic and not saying what generated it,
+          # inventing a third word for the nature, and deleting a fixture while
+          # its record stays behind.
+          mkdir -p "${demo}/no-record/tests/fixtures"
+          printf 'a\tb\n' > "${demo}/no-record/tests/fixtures/probe.tsv"
+
+          mkdir -p "${demo}/empty-record/crates/spectro-contract/tests/fixtures"
+          printf 'a\tb\n' > "${demo}/empty-record/crates/spectro-contract/tests/fixtures/probe.tsv"
+          : > "${demo}/empty-record/crates/spectro-contract/tests/fixtures/probe.tsv.origin.md"
+
+          mkdir -p "${demo}/no-generator/tests/fixtures"
+          printf 'a\tb\n' > "${demo}/no-generator/tests/fixtures/probe.tsv"
+          printf 'Origin: written for this demonstration\nTerms: none, nothing was retrieved\nNature: synthetic\nProperty: a header and one row\n' \
+            > "${demo}/no-generator/tests/fixtures/probe.tsv.origin.md"
+
+          mkdir -p "${demo}/third-word/tests/fixtures"
+          printf 'a\tb\n' > "${demo}/third-word/tests/fixtures/probe.tsv"
+          printf 'Origin: written for this demonstration\nTerms: none, nothing was retrieved\nNature: sample\n' \
+            > "${demo}/third-word/tests/fixtures/probe.tsv.origin.md"
+
+          mkdir -p "${demo}/dangling-record/tests/fixtures"
+          printf 'Origin: written for this demonstration\nTerms: none, nothing was retrieved\nNature: synthetic\nProperty: a header and one row\nGenerator: none, this file is the demonstration\n' \
+            > "${demo}/dangling-record/tests/fixtures/probe.tsv.origin.md"
+
+          mkdir -p "${demo}/complete/crates/spectro-contract/tests/fixtures"
+          printf 'a\tb\n' > "${demo}/complete/crates/spectro-contract/tests/fixtures/probe.tsv"
+          printf 'Origin: written for this demonstration\nTerms: none, nothing was retrieved\nNature: synthetic\nProperty: a header and one row\nGenerator: none, this file is the demonstration\n' \
+            > "${demo}/complete/crates/spectro-contract/tests/fixtures/probe.tsv.origin.md"
+
+          bad=0
+          for case in no-record empty-record no-generator third-word dangling-record; do
+            ( cd "${demo}/${case}" && find . -type f | sed 's#^\./##' | sort > "${RUNNER_TEMP}/fixtures/list" )
+            if output=$("${RUNNER_TEMP}/fixtures/judge.sh" "${demo}/${case}" "${RUNNER_TEMP}/fixtures/list" 2>&1); then
+              echo "::error::The demonstration '${case}' was accepted. A rule that no longer refuses the mistake it was written for cannot sit here green."
+              printf '%s\n' "$output"
+              bad=1
+            else
+              echo "${case}: refused, as it must be."
+              printf '%s\n' "$output" | sed 's/^::error:://' | sed 's/^/    /'
+            fi
+          done
+
+          ( cd "${demo}/complete" && find . -type f | sed 's#^\./##' | sort > "${RUNNER_TEMP}/fixtures/list" )
+          if output=$("${RUNNER_TEMP}/fixtures/judge.sh" "${demo}/complete" "${RUNNER_TEMP}/fixtures/list" 2>&1); then
+            echo "complete: accepted, as it must be."
+            printf '%s\n' "$output" | sed 's/^/    /'
+          else
+            echo "::error::The demonstration 'complete' was refused. A rule that refuses a fixture carrying everything docs/fixtures.md asks for refuses for a reason it does not name."
+            printf '%s\n' "$output"
+            bad=1
+          fi
+
+          if [ "$bad" -ne 0 ]; then
+            exit 1
+          fi
+          echo "Every demonstration was judged the way it was declared."
+
+      - name: Apply it to this tree, and say what it judged
+        run: |
+          set -euo pipefail
+
+          # The two places a fixture can stand. The second is where a cargo
+          # crate puts the files its own suite reads, and it is the one the
+          # command first written into docs/fixtures.md did not ask about. Both
+          # are the surface .gitattributes holds `-text` over.
+          git ls-files -- 'tests/fixtures/*' '*/tests/fixtures/*' | sort -u > "${RUNNER_TEMP}/fixtures/list"
+          count=$(wc -l < "${RUNNER_TEMP}/fixtures/list")
+
+          if [ "$count" -eq 0 ]; then
+            echo "No fixture stands at either path, so this run refused nothing and that is worth nothing."
+            echo "The demonstrations above are what says the rule still bites while that is true."
+            exit 0
+          fi
+
+          "${RUNNER_TEMP}/fixtures/judge.sh" . "${RUNNER_TEMP}/fixtures/list"

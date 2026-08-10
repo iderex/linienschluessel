@@ -14,12 +14,21 @@ members = [
     "crates/spectro-null",
     "crates/spectro-answer",
     "crates/spectro-report",
+    # The binary above both halves. It carries neither prefix because it is on
+    # neither side, which is the one crate docs/decisions/layout.md exempts from
+    # deriving its side from its name. The name is the command an operator
+    # types, answered as entry 6 of issue #1.
+    "crates/linienschluessel",
 ]
 
 # Shared by every member so a new crate inherits the edition and the release
-# posture instead of restating them. `publish = false` because this repository
-# has no licence yet, which is entry 1 of issue #1, and cargo would otherwise
-# accept a publish of an unlicensed package.
+# posture instead of restating them. `publish = false` no longer rests on this
+# repository having no licence: LICENSE is tracked and carries AGPL-3.0. It
+# rests on entry 7 of issue #1, which keeps the generic half in this tree under
+# the separability requirement of docs/decisions/layout.md and lifts it out only
+# once a second board needs it. Nothing here is published from this repository
+# yet, and a registry release would fix a crate name and a public interface
+# ahead of the decision that owns each of them.
 [workspace.package]
 version = "0.0.0"
 edition = "2024"

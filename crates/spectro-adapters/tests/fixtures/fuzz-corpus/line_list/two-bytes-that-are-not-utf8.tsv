@@ -1,0 +1,6 @@
+#contract_version	1.0
+#position_unit	nm
+#position_medium	vacuum
+#line_list_id	seed-line-list
+feature_id	spectrum_id	segment_id	position	position_medium	position_uncertainty	uncertainty_kind	uncertainty_class	intensity	intensity_scale	flags	ritz_position
+F1	S1	ÿþ	185.9	vacuum	0.0009	standard_deviation		40	photographic		

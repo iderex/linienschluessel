@@ -1,0 +1,4 @@
+#contract_version	1.0
+#level_set_id	seed-level-set
+level_id_a	level_id_b	covariance
+L1	L2	1.2e-06

@@ -1,0 +1,6 @@
+﻿#contract_version	1.0
+#energy_unit	cm-1
+#energy_reference	ground_state
+#level_set_id	seed-level-set
+level_id	species	energy	energy_uncertainty	uncertainty_kind	uncertainty_class	parity	j	origin	configuration	term
+L1	Fe II	0.0	0.002	standard_deviation		even	4.5	measured	3d6.(5D).4s	a6D

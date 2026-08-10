@@ -65,21 +65,38 @@ pull request that merges anyway leaves the same trace as a green one.
 ## What runs on a pull request and is not in that set
 
 The required set is not every name a pull request reports under. On the head
-commit of #87:
+commit of #104:
 
-    gh api repos/iderex/linienschluessel/commits/01b5984/check-runs \
+    gh api repos/iderex/linienschluessel/commits/c5de088/check-runs \
       --jq '.check_runs[] | "\(.name)\t\(.conclusion)"' | sort | uniq -c
+      1 Analyze (actions)	success
+      1 Analyze (rust)	success
       1 Audit workflows (zizmor)	success
+      1 CodeQL	success
       1 Coverage on the deciding surface	success
       1 DCO sign-off	success
       1 dependency-review	success
+      2 Every fixture carries its record	success
+      2 Invariants from the decision records	success
       2 Reject Trojan Source Unicode	success
       1 zizmor	success
 
-Six names, seven runs. `Reject Trojan Source Unicode` appears twice because
-`unicode-guard.yml` triggers on both push and pull request and names the job
-once, and one required context covers both runs rather than two contexts being
-owed. `zizmor` is the sixth name and it is not required.
+Read 2026-08-11. Eleven names, fourteen runs. The transcript that stood here was
+taken on the head of #87 and printed six names and seven runs, at a commit where
+the scanner, the invariant job and the fixture job had not reported on a pull
+request at all.
+
+Three names appear twice and it is one reason each time. `unicode-guard.yml`,
+`invariants.yml` and `fixtures.yml` each trigger on both push and pull request
+and name their job once, so a single context covers both runs rather than two
+contexts being owed.
+
+Five of the eleven are the required set printed above. The other six report and
+stop nothing: `Analyze (actions)`, `Analyze (rust)`, `CodeQL`, `Every fixture
+carries its record`, `Invariants from the decision records` and `zizmor`. The
+last of those is the workflow name beside the job name `Audit workflows
+(zizmor)`, which is required, so one tool reports under two names of which one
+gates.
 
 One further name exists and cannot be required. `Scorecard analysis` runs on
 push and not on a pull request, so it never reports on a head commit a merge is
@@ -117,18 +134,25 @@ exists here today, and the issue that owes it where it does not.
 | `ABI floor build` | A build against the minimum toolchain version the pinned file declares | owed | #4 for the pin, #5 for the job |
 | `Package (JPRM) / Build package` | No counterpart. The release artefact per platform | owed | #63 |
 | `Package (JPRM) / Generate SBOM` | A bill of materials for the release artefact | owed | #51 |
-| `CodeQL` | CodeQL, unchanged in mechanism | owed | #52 |
-| `Analyze (csharp)` | The same analysis on this board's language | owed | #52 |
+| `CodeQL` | CodeQL, unchanged in mechanism | exists | |
+| `Analyze (csharp)` | The same analysis, on the two languages the platform derives here, reporting as `Analyze (rust)` and `Analyze (actions)` | exists | |
 | `DCO sign-off` | The same check, already here | exists | |
 | `Deterministic PR-hygiene checks` | The same, in two tiers | owed | #57 |
-| `Enforce greppable invariants` | The same mechanism, entirely different content | owed | #53 |
+| `Enforce greppable invariants` | The same mechanism, entirely different content, reporting as `Invariants from the decision records` | exists | |
 | `Reject Trojan Source Unicode` | The same check, already here | exists | |
 | `Audit workflows (zizmor)` | The same check, already here | exists | |
 | `prettier` | A formatter check, split by what it formats | owed | #5 |
 | `dependency-review` | The same check, already here | exists | |
 
-Four of the thirteen exist here. The other nine are owed and each names the
+Seven of the thirteen exist here. The other six are owed and each names the
 issue that owes it.
+
+Existing and gating are not the same statement, and the split falls inside those
+seven. Four of them are in the required set printed above: `DCO sign-off`,
+`Reject Trojan Source Unicode`, `Audit workflows (zizmor)` and
+`dependency-review`. The three that arrived since the count read four report and
+stop nothing. So a row reading `exists` says the check runs, and the required-set
+command is the authority for which of them a merge waits on.
 
 ## The deviations, and the reason for each
 
@@ -154,6 +178,27 @@ with Rust among them and carrying no separate qualification in that list. So
 this deviation is a language change inside an unchanged mechanism, and not a
 named replacement. If that changes, the replacement is named in #52 and this
 paragraph is the thing to correct.
+
+What the scanner's contexts are worth was measured rather than assumed, on #95,
+a branch carrying three deliberate findings and closed unmerged. On its head
+`ee61502`, `CodeQL`, `Analyze (rust)` and `Analyze (actions)` all report success
+while `Audit workflows (zizmor)` reports failure, and the one alert filed against
+that head came from zizmor:
+
+    gh api 'repos/iderex/linienschluessel/code-scanning/analyses?ref=refs/pull/95/merge' \
+      --jq '.[] | "\(.category)\t\(.tool.name)\tresults=\(.results_count)\trules=\(.rules_count)"'
+    /language:rust	CodeQL	results=0	rules=25
+    /language:actions	CodeQL	results=0	rules=17
+    zizmor	zizmor	results=1	rules=1
+
+Read 2026-08-11. Two things follow and both belong beside the row above. The
+context that reports a scan is not the context that judges one, so a green
+`CodeQL` is compatible with a finding sitting in the security tab, and what went
+red there was a job re-running its tool and failing on the result rather than an
+alert doing it. And forty-two rules across the two languages returned nothing on
+three findings written to be found, which is a number worth carrying because a
+scanner that finds nothing and a scanner with nothing to find leave the same
+green check. Neither of those is repaired by this page. #52 holds them.
 
 The formatter. The target board runs one formatter over what it holds. The
 language here is different, so the check is different, and it splits: the source

@@ -1,0 +1,4 @@
+obs_wl_vac(nm)	unc_obs_wl	ritz_wl_vac(nm)	unc_ritz_wl	intens	Aki(s^-1)	Acc	line_ref	
+"185.90100"	"0.00030"	"185.90112"	"0.00005"	"750"	"1.88e+05"		"L1"	
+obs_wl_air(nm)	unc_obs_wl	ritz_wl_air(nm)	unc_ritz_wl	intens	Aki(s^-1)	Acc	line_ref	
+"259.93960"	"0.00004"	"259.93955"	"0.00005"	"5000"	"8.60e+06"	AA	"L4"	

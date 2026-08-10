@@ -1,0 +1,4 @@
+Configuration	Term	J	g	Prefix	Level (cm-1)	Suffix	Uncertainty (cm-1)	Leading percentages	Reference
+"2s2.2p5"	"2P*"	"3/2"	4	""	"0.0000"	""	"0"	" 100          "	"L1"
+"2s.2p6"	"2S"	"1/2"	2	""	"216333.412"	""	"0.09"	"  98          "	"L1"
+"2s2.2p4.(1D).4d"	"2D"	"5/2"	6	""	"329001"	"?"	"3"	"  39          "	"L2"

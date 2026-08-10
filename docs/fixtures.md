@@ -26,6 +26,13 @@ and the suffix `.origin.md`. A sidecar rather than one index, because an index
 listing every fixture drifts against the directory the moment somebody adds a
 file and forgets, and the drift is invisible. A missing sidecar is not.
 
+Each thing a record says is one line, beginning at column zero with the field
+name, a colon and the value. `Origin`, `Terms` and `Nature` on every record.
+`Property` and `Generator` where the nature is `synthetic`, and
+`Edited-after-retrieval` where it is `real`. A line rather than a paragraph
+because a field that is present is a thing a check can read, and a record that
+exists and says nothing is the failure a presence check on its own would pass.
+
 Every record says:
 
 The origin. For a real extract, the database or the publication, the query or
@@ -151,31 +158,48 @@ the reader are decided by the source and not by anything on the way in. That
 choice belongs with the test rather than with this rule, and both routes need
 the record above.
 
-## What is not here yet
+## The check, and what it is worth
 
-Issue #8 asks for a check that refuses a fixture file carrying no record, and for
-a run in which a fixture added without one turns that check red. Neither exists,
-and the reason has changed since this was first written.
+`.github/workflows/fixtures.yml` refuses a fixture that carries no record. It
+takes every tracked file under the two paths above that is not itself a record,
+and requires the sidecar beside it to be there and to carry its fields. It
+refuses in the other direction too. A record naming a file that is not there is
+refused, so removing a fixture and leaving its record behind cannot pass as a
+directory in which every fixture has one.
 
-It is no longer that there is nowhere to run a check. There is a tree and there
-are jobs that build and test it. Read at bb20bad:
+The fields are the ones above and the check reads that each is present and
+carries something. What each one has to say is prose and stays a thing a reader
+judges. A `Nature` that is neither `real` nor `synthetic` is refused rather than
+guessed at, because the two support different claims.
 
-    git ls-files 'crates/*/Cargo.toml' 'crates/*/src/*.rs' 'crates/*/tests/*.rs' | wc -l
-    42
-    git ls-files .github/workflows | wc -l
-    7
+It sits in a workflow rather than in a crate because its subject is a directory
+of this repository rather than a unit of the program, which is the reason
+`.github/workflows/invariants.yml` gives in its own comment for sitting there.
+The three options weighed here before were a crate among the existing ones, a
+new crate, and the workspace root as a package, and all three take the check to
+be Rust. None of them is needed. No crate has to own it,
+`docs/decisions/layout.md` does not move, and the property issue #74 measured on
+the workspace members is untouched.
 
-What is missing is where such a check would live. A check refusing a fixture
-that has no sidecar judges a directory of this repository rather than a crate,
-and no crate owns that. Putting it in one of the thirteen makes an arbitrary
-crate the keeper of a repository-wide rule. Adding a fourteenth for it breaks
-the property issue #74 measured on the change that landed the workspace, that
-the members are exactly the units `docs/decisions/layout.md` names. Making the
-workspace root a package is the third option and is a change to that record
-rather than to this one. Which of the three is right is not settled here, and
-issue #8 stays open holding it.
+What that costs is not left out. A workflow runs on the server, so this check is
+not run by the command issue #9 asks for before a push, and
+`docs/quality-parity.md` prints what a green check is worth on this board today:
+no status check is required to merge until issue #69 lands. A fixture with no
+record is refused in a run and is not stopped from reaching the mainline.
 
-Until the check exists the rule is held by whoever reads a change, which is worth
-saying plainly rather than leaving a reader to assume a mechanism stands behind
-a document. The half that does have a mechanism today is the byte preservation
-above, and it is git's rather than this repository's code.
+No fixture stands at either path yet, so the check judges nothing in this tree
+and says so rather than passing quietly:
+
+    No fixture stands at either path, so this run refused nothing and that is
+    worth nothing.
+
+What keeps it from being decoration while that stays true is that it judges its
+own demonstrations first, on every run, before it reads the tree. Six
+directories are built in the runner's temporary space, five of them mistakes
+somebody will actually make: a fixture with no record, a record with no fields
+in it, a synthetic record that does not name its generator, a record whose
+nature is a third word, and a record whose fixture is gone. All five have to be
+refused, and the sixth, carrying everything this document asks for, has to be
+accepted. A disagreement on any of them reds the job before the tree is looked
+at, so the rule cannot stop working unnoticed in the time before the first
+fixture lands.

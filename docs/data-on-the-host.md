@@ -64,35 +64,41 @@ Run against this repository as it stands:
 
 That result is worth more than it did and still not what this record claims, and
 both halves are printed, because a reader who sees a clean grep should also see
-how much of this board it covered. Read at 2cc14d1:
+how much of this board it covered. Read at dde1110:
 
+    git ls-files 'crates/*/Cargo.toml' | wc -l
+    14
     git ls-files 'crates/*/src/lib.rs' | wc -l
     13
     git grep -l '' -- 'crates/*/src/lib.rs' | wc -l
-    2
+    3
 
     git grep -l '' -- '*.rs' | cut -d/ -f2 | sort -u
+    assoc-model
+    linienschluessel
     spectro-adapters
     spectro-contract
 
     git grep -c '' -- 'crates/*/src/*.rs' 'crates/*/tests/*.rs' \
       | awk -F: '{f++; s+=$NF} END {print f" files, "s" lines"}'
-    18 files, 4906 lines
+    26 files, 5946 lines
 
-Thirteen crates, eleven of them holding a `lib.rs` with nothing in it, and every
-line of Rust in this repository sitting in the other two. What changed since the
-count above was last taken is the one thing this record had singled out. It said
-the parts of a run with a reason to open a socket were the retrieval paths of
-issues #22 and #23, and that neither was written. Both are written now, and the
+Fourteen crates. Ten of the thirteen libraries hold a `lib.rs` with nothing in
+it, every line of Rust in this repository sits in the other three, and the
+fourteenth crate is the binary, whose `main.rs` does nothing. What changed since
+the count above was last taken is the one thing this record had singled out. It
+said the parts of a run with a reason to open a socket were the retrieval paths
+of issues #22 and #23, and that neither was written. Both are written now, and the
 grep covers both. Neither opens a socket, because `docs/decisions/input-contract.md`
 makes retrieval the operator's act and hands an adapter bytes that are already on
 disk.
 
 So the clean result covers the two places this record expected the violation to
 appear, which is more than a clean search over an empty tree and is still not
-the property. Eleven crates hold nothing, the objective and the solver among
-them, and a grep can be walked around by a dependency that opens the socket on
-the program's behalf. The sentence has changed twice and the conclusion has not.
+the property. Ten crates hold nothing, the objective and the solver among them,
+and a grep can be walked around by a dependency that opens the socket on the
+program's behalf. The sentence has changed three times and the conclusion has
+not.
 
 The half that will be worth something is a run of the whole pipeline with no
 network route available, asserting it succeeds. A grep can be walked around by
@@ -146,8 +152,8 @@ It reads bytes rather than behaviour. A dependency that opens a socket on this
 program's behalf carries none of those words into this tree, and the rule cannot
 see it. That is the case the offline run exists for.
 
-It covers what the grep covers, which is the section above and its two crates
-out of thirteen.
+It covers what the grep covers, which is the section above and its four crates
+out of fourteen.
 
 The offline pipeline test is the half with no mechanism at all. It needs a run
 to make, and the job it would run in is issue #5's. Until it exists this record

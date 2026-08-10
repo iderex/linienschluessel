@@ -7,31 +7,36 @@ a search, and a posterior over what survived. That half can be built and tested
 without a wavelength in sight, and this record draws the line between the two
 halves before there is any code to draw it through.
 
-The tree this record describes exists. Read at a23385a:
+The tree this record describes exists. Read at e8e27be:
 
     git ls-files 'crates' 'crates/*' '*.rs' 'Cargo.toml' | wc -l
-    37
+    51
 
     grep -c '^    "crates/' Cargo.toml
-    13
+    14
 
-Part of this record is now refused by something rather than only stated, and the
-section on the dependency edge below carries both the measurement and how narrow
-it is. The greppable half is refused by nothing, and the section carrying the
-word list names issue #53 as where that check is owed.
+Both halves of this record are refused by something now rather than only stated.
+The section on the dependency edge below carries that measurement and how narrow
+it is, and the section carrying the word list names the check that reads it.
 
-One unit this record names is absent from the workspace. It describes a binary
-crate above both sides, and the thirteen members are all libraries:
+Every unit this record names is in the workspace. The binary above both sides
+was the last one in, once entry 6 of issue #1 answered what the command is
+called, and it is the fourteenth member:
 
     git ls-files '*/src/main.rs' 'crates/*/src/bin' ; echo "exit=$?"
+    crates/linienschluessel/src/main.rs
     exit=0
+
+The command this record used to put beside that one no longer says anything
+about it, and it is kept here so that nobody reads its empty result as the
+absence it once was. Cargo takes a binary target from `src/main.rs` without a
+section declaring one:
+
     git grep -c '\[\[bin\]\]' -- 'crates' ; echo "grep exit=$?"
     grep exit=1
 
-Issue #74 is where the workspace landed and where that unit is still owed, with
-the reason it was left out written into it. Issue #3 asks for a tree that
-matches this document; what remains of that half is written into #3 rather than
-left to be inferred.
+Issue #3 asks for a tree that matches this document; what remains of that half
+is written into #3 rather than left to be inferred.
 
 ## Why the line is drawn now and not later
 
@@ -71,7 +76,9 @@ The tree is a cargo workspace. Every unit is a crate under `crates/`, and the
 side a crate is on is derivable from its name rather than looked up in a list:
 `assoc-` is the generic side and `spectro-` is the spectroscopy side. A new
 crate cannot be added without choosing a side, and no document has to be updated
-when one is, which is the property a list in a file would not have.
+when one is, which is the property a list in a file would not have. One crate
+carries neither prefix, and it is the binary described below, which is on
+neither side. A second crate carrying neither is a side nobody chose.
 
 The generic side.
 
@@ -97,8 +104,11 @@ The spectroscopy side.
 | `spectro-report` | The human-readable report, generated from the answer file alone |
 
 One binary crate sits above both and wires them together. Its name is what ends
-up in other people's scripts, which is entry 6 of issue #1 and is the
-maintainer's to answer, so this record names the unit and not the command.
+up in other people's scripts, which is entry 6 of issue #1, and the answer there
+is `linienschluessel`: the same word as the repository and as the citation, so a
+methods section quoting one of the three is unambiguous about the other two. It
+holds nothing else yet. What the command takes, what it writes and the exit
+codes that separate a refused input from an internal failure are issue #62's.
 
 Two directories are not crates. `tests/integration/` is the harness of issue #7,
 which the default gate does not run. `docs/` is where every decision above was
@@ -196,8 +206,24 @@ larger tool than this board needs today.
 
 The list is the check's data rather than a paragraph in this file, for the same
 reason `docs/quality-parity.md` prints its lists rather than remembering them.
-The check itself is issue #53's, and the run showing a deliberately added
-identifier make it red is owed there.
+The check is `no-spectroscopic-identifier-on-the-generic-side` in
+`.github/workflows/invariants.yml`, which carries that list as a row naming this
+record, so a contributor who trips it is sent to the argument rather than to a
+pattern.
+
+It proves the pattern still catches the mistake on every run rather than once.
+The job refuses a rule whose own declared demonstration its pattern does not
+match, and this rule's demonstration is a struct field called `wavenumber` on a
+generic observation type. What it searched at e8e27be is printed by the job
+rather than claimed here:
+
+    no-spectroscopic-identifier-on-the-generic-side: clean over 7 Rust file(s),
+    1031 line(s) of Rust, out of 12 tracked file(s) and 1060 line(s) under
+    [crates/assoc-*]. Record: docs/decisions/layout.md
+
+That is a clean result over the thirteen words on the list. It says nothing
+about the three the paragraph above keeps off it, which is the hole that
+paragraph is about.
 
 ## Three cases the test does not decide by itself
 

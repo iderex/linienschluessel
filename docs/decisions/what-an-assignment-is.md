@@ -10,22 +10,42 @@ available, which is the same transition seen twice.
 
 So the object is not a function. This record says what it is instead.
 
-Nothing in this repository refuses a violation of this record today. There is a
-source tree now and the crate that would carry these objects holds nothing.
+The crate that carries these objects holds them now.
 `docs/decisions/layout.md` puts observations, hypotheses and mutual exclusion in
-`assoc-model`. Read at a23385a:
+`assoc-model`, and the change that landed under issue #11 put them there:
 
-    git grep -c '' -- crates/assoc-model/src/lib.rs ; echo "exit=$?"
-    exit=1
+    git grep -c '' -- 'crates/assoc-model/src/*.rs' | awk -F: '{s+=$2} END {print s}'
+    659
 
-    git grep -l '' -- '*.rs' | cut -d/ -f2 | sort -u
-    spectro-contract
+    git grep -l '' -- '*.rs' | cut -d/ -f2 | sort -u | tr '\n' ' '
+    assoc-model spectro-adapters spectro-contract
 
-So the reason has moved from an empty repository to an empty crate, and the
-conclusion is the one it was before.
+Part of this record is therefore refused by something rather than only stated,
+and it is worth being exact about which part, because the half that is refused
+is the smaller one.
 
-That is also why issue #11 is not closed by this file. Its Done-when asks that
-the type in the tree match the document and be greppable, and there is no type.
+Refused by the type. A hypothesis holding one item twice, which is refused
+rather than deduplicated. A hypothesis whose items carry two different numbers
+of slots, and a hypothesis set whose members do. An item built with a number of
+values the slot layout does not declare.
+
+Made impossible rather than refused, which is stronger. The structural key is
+computed on request and never stored, so no edit to the components can leave a
+key describing what a hypothesis used to be. And the size-zero member is put
+into a hypothesis set by its constructor, which is the only way to build one, so
+there is no path that produces a set without it.
+
+Refused by nothing, and this is the larger half. Nothing stops a crate elsewhere
+in the tree from writing its own exclusion rule instead of asking the type,
+which is the failure the two paragraphs on exclusion below exist against.
+Nothing stops code that iterates a hypothesis set from filtering the size-zero
+member back out afterwards. Both are boundary rules of the kind
+`docs/decisions/layout.md` says a reader covers, and neither has a check.
+
+What each refusal is worth is a seeded defect rather than this paragraph. Five
+of them are in the body of the pull request that landed the type, each with the
+test it reddened and the plausible mistake it stands for.
+
 Issue #40 is where the probability becomes a field on every hypothesis, issue
 #30 is where the destructive test below lands, and issue #43 is where the shapes
 here become a schema.
@@ -286,21 +306,47 @@ Two features of one spectrum claiming one transition, which is.
     reported        both winners, both probabilities, the conflict named on
                     each, and the shared transition
 
-## What the type owes when it lands
+## What the type owes, and where each half of it is
 
 Issue #11 asks that the type in the tree match this document and that the match
-be greppable. What that means, so that whoever writes the type is not left to
-infer it.
+be greppable. The four obligations, each with the name that carries it:
 
 A hypothesis holds a set of transitions, not a list and not an optional single
 transition, so that size zero, one and many are one type with no special case and
-none-of-these cannot be represented by an absent value. The structural key is
-computed from the components rather than stored beside them, so the two cannot
-disagree. Mutual exclusion is a property of a pair of hypotheses that the type
-can answer, rather than a rule the solver reimplements. And a feature's
-hypothesis set includes the size-zero member at construction, so there is no
-code path that builds a set without it.
+none-of-these cannot be represented by an absent value. `Hypothesis` holds a set
+and `Hypothesis::none_of_these` is a member of that type rather than an absence
+beside it.
+
+The structural key is computed from the components rather than stored beside
+them, so the two cannot disagree. `Hypothesis::key` computes it and no field
+holds it.
+
+Mutual exclusion is a property of a pair of hypotheses that the type can answer,
+rather than a rule the solver reimplements. `Claim::excludes` answers it, over a
+pair carrying the observation each hypothesis belongs to, because two identical
+sets of items exclude each other inside one group and support each other across
+two.
+
+And a feature's hypothesis set includes the size-zero member at construction, so
+there is no code path that builds a set without it. `HypothesisSet::new` inserts
+it before it reads what was offered, and it is the only constructor.
+
+    git grep -nE 'pub fn none_of_these|pub fn key\(|pub fn excludes|hypotheses.insert\(Hypothesis::none_of_these' -- 'crates/assoc-model/src'
+    crates/assoc-model/src/hypothesis.rs:69:    pub fn none_of_these() -> Self {
+    crates/assoc-model/src/hypothesis.rs:117:    pub fn key(&self) -> StructuralKey {
+    crates/assoc-model/src/observation.rs:73:        hypotheses.insert(Hypothesis::none_of_these());
+    crates/assoc-model/src/observation.rs:164:    pub fn excludes(&self, other: &Claim<'_>) -> bool {
 
 Per `docs/decisions/layout.md`, all of that is `assoc-model`'s, in the generic
 vocabulary of items and slots, and the words upper, lower and multipole belong to
-the crate that instantiates it.
+the crate that instantiates it. So a transition here is an item, a feature is an
+observation, and a spectrum is a group, and the crate holds no word from the
+left-hand side of any of those three pairs:
+
+    git grep -nEi 'wavelength|wavenumber|kayser|parity|multipole|ritz|vacuum|angstrom|spectrum|spectra|ionisation|ionization|transition' -- 'crates/assoc-*' ; echo "grep exit=$?"
+    grep exit=1
+
+That search is the invariant `.github/workflows/invariants.yml` applies under
+`no-spectroscopic-identifier-on-the-generic-side`, and it is worth something here
+for the first time: it ran over a crate with identifiers in it rather than over
+five empty files.

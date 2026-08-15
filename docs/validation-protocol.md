@@ -21,11 +21,11 @@ the sentence changed and the state it describes did not. A run needs the
 candidates, the objective, the solver and the posterior, and every crate
 `docs/decisions/layout.md` puts those in is empty.
 
-Issue #45 is not closed by this file. Its Done-when asks for a command that runs
-each procedure and for a test over a small fixture whose truth is known by
-construction, and it asks that every reported validation number name its
-procedure as a field in the result file. The first two need a program. The third
-is a requirement this file states and nothing here enforces.
+Issue #45 is not closed by this file. Its Done-when asks for a command that
+runs each procedure and for a test over a small fixture whose truth is known
+by construction, and it asks that every reported validation number name its
+procedure as a field in the result file. The first two need a program. The
+third is a requirement stated here and enforced by nothing.
 
 ## The trap
 
@@ -39,13 +39,14 @@ That paragraph is the premise issue #45 supplies, with the reference it supplies
 and this protocol is built on it. No reading of that paper was made here, and
 saying so is the difference between a citation and a claim.
 
-What follows from it is arithmetic rather than opinion. Feed those levels and
-those lines into an assignment engine and the residuals will be tiny for the true
-assignment, because the level energies were chosen to make them tiny. An engine
-that recovers the published assignment under those conditions has demonstrated
-that it can find the minimum of a function somebody else already minimised. The
-recovery figure will be high, every metric in `docs/validation-metrics.md` will
-be computable, and none of them will be measuring what the reader thinks.
+What follows from it is arithmetic, and no opinion enters. Feed those levels
+and those lines into an assignment engine and the residuals will be tiny for
+the true assignment, because the level energies were chosen to make them tiny.
+An engine that recovers the published assignment under those conditions has
+demonstrated that it can find the minimum of a function somebody else already
+minimised. The recovery figure will be high, every metric in
+`docs/validation-metrics.md` will be computable, and none of them will be
+measuring what the reader thinks.
 
 So the protocol has to break the circle, and no single procedure breaks it
 cleanly. Three do, partially and in different directions, and each is named at
@@ -66,14 +67,14 @@ spectroscopist extending an existing analysis, which is the commonest real use.
 What it cannot measure. It does not break the circle, it narrows it. The level
 still exists because the original analysis found it, and its parity and its J
 still come from that analysis. A level supported mostly or entirely by the
-withheld lines becomes badly determined or undetermined when they are removed, so
-the problem changes rather than being held fixed, and the withheld set therefore
-has to be chosen so that every level it touches retains enough support. That
-choice is itself a decision the result document states.
+withheld lines becomes badly determined or undetermined when they are removed,
+so the problem itself moves and is no longer held fixed, and the withheld set
+therefore has to be chosen so that every level it touches retains enough
+support. That choice is itself a decision the result document states.
 
-It also has a prerequisite this board does not have. Re-optimising level energies
-is a least-squares fit over the retained lines, and there is no level
-optimisation here and no open issue that owes one. That was checked rather than
+It also has a prerequisite this board does not have. Re-optimising level
+energies is a least-squares fit over the retained lines, and there is no level
+optimisation here and no open issue that owes one. That was checked, never
 assumed:
 
     gh issue list --state all --limit 200 --json number,title,body \
@@ -132,17 +133,17 @@ What it measures. Whether the engine declines. The only right answer for a
 feature whose true level was withheld is the none-of-these hypothesis of
 `docs/decisions/what-an-assignment-is.md`, and the metric is `reach(t)` in
 `docs/validation-metrics.md`, reported as how often the engine reached for a
-neighbour rather than how often it did not. This is the procedure that tests the
+neighbour, not as how often it did not. This is the procedure that tests the
 failure this board says is the most damaging one available to it.
 
 What it cannot measure. Anything about recovery, since the assignments it is
-asking about have had their answer removed. It also perturbs the thing the null
-of `docs/decisions/chance-coincidence.md` measures: removing levels changes the
-local level density, so the accidental match rate in the affected regions moves,
-and the null is re-measured under the modified level set rather than carried over
-from the full one. A report that quotes an accidental rate from the unmodified
-set beside a reach figure from the modified one has compared two different
-spectra.
+asking about have had their answer removed. It also perturbs the thing the
+null of `docs/decisions/chance-coincidence.md` measures: removing levels
+changes the local level density, so the accidental match rate in the affected
+regions moves, and the null is re-measured under the modified level set and
+never carried over from the full one. A report that quotes an accidental rate
+from the unmodified set beside a reach figure from the modified one has
+compared two different spectra.
 
 ### The fourth setting, which is not a procedure
 
@@ -166,10 +167,10 @@ values:
 | `level_holdout` | Whole-level hold-out |
 | `none` | Full published level set, no hold-out, not a validation number |
 
-A result file carrying a metric without this field is refused rather than read
-with an assumed value. There is no default, because the three procedures measure
-different things and the difference between them is exactly what a default would
-hide.
+A result file carrying a metric without this field is refused, and is never
+read with an assumed value. There is no default, because the three procedures
+measure different things and the difference between them is exactly what a
+default would hide.
 
 Each value carries the parameters that make it reproducible: which lines or
 levels were withheld and by what rule they were chosen, the identity of the
@@ -257,8 +258,8 @@ would be embarrassing to reintroduce in the harness. The hold-out is applied to
 the inputs, before the run, and the run does not know which procedure it is part
 of.
 
-The three are slow. They belong to the integration harness of issue #7 rather
-than to the default gate, and the gate says so on every run rather than being
+The three are slow. They belong to the integration harness of issue #7 and not
+to the default gate, and the gate says so on every run instead of staying
 silent about a set it did not cover.
 
 ## What the fixture test owes

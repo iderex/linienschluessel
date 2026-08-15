@@ -59,9 +59,9 @@ misleading.
 
 ## Why the null displaces the features and not the levels
 
-Issue #16 offers, as the cheap option, displacing every level by a common offset
-larger than the tolerance. That does not work, and the reason is arithmetic
-rather than a matter of degree.
+Issue #16 offers, as the cheap option, displacing every level by a common
+offset larger than the tolerance. That does not work, and the reason is
+arithmetic and not a matter of degree.
 
 Every quantity this engine compares against an observed position is a difference
 of two level energies. Adding a common offset d to every level leaves every such
@@ -82,13 +82,13 @@ Displacing the features has neither problem. Line density, level density and the
 whole pair structure of the level set survive exactly, the tolerance travels
 with each feature, and the same shift applies to every multipole at once.
 
-It has one property worth naming rather than hiding. Real observed features
+It has one property worth naming and not hiding. Real observed features
 cluster where levels are dense, and a shifted feature list still lands
-preferentially in dense regions. So this null is not a uniform sprinkle over the
-range; it keeps the joint structure of the two inputs and asks what the match
-rate would be if the correspondence between them were destroyed. That is the
-question the board actually needs answered, and it is a different and harder
-question than what a uniform random line list would give.
+preferentially in dense regions. So this null is not a uniform sprinkle over
+the range; it keeps the joint structure of the two inputs and asks what the
+match rate would be if the correspondence between them were destroyed. That is
+the question the board actually needs answered, and it is a different and
+harder question than what a uniform random line list would give.
 
 ## Regions
 
@@ -98,8 +98,8 @@ across a range this board covers.
 
 Regions are contiguous intervals in wavenumber, chosen so that each holds at
 least `null.region_min_features` observed features, default 50, with the last
-interval merged into its neighbour rather than left short. Equal counts rather
-than equal widths, because a region holding three features gives a rate with a
+interval merged into its neighbour and never left short. Equal counts, not
+equal widths, because a region holding three features gives a rate with a
 denominator of three and reads as a measurement.
 
 Each region reports its bounds, the number of observed features in it, the
@@ -135,9 +135,9 @@ question the single reported null cannot: whether the accidental rate for the
 forbidden multipoles differs from the rate for electric dipole, which matters
 because those candidates are rarer and carry a heavier prior.
 
-All three are computed only when asked for, and a run that did not compute them
-says so rather than leaving the fields absent. A diagnostic that was not run and
-a diagnostic that returned nothing are different statements.
+All three are computed only when asked for, and a run that did not compute
+them says so and does not leave the fields absent. A diagnostic that was not
+run and a diagnostic that returned nothing are different statements.
 
 ## When the accidental rate is the same size as the answer
 

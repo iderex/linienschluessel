@@ -20,20 +20,20 @@ The crate that carries these objects holds them now.
     git grep -l '' -- '*.rs' | cut -d/ -f2 | sort -u | tr '\n' ' '
     assoc-model spectro-adapters spectro-contract
 
-Part of this record is therefore refused by something rather than only stated,
-and it is worth being exact about which part, because the half that is refused
-is the smaller one.
+Part of this record is therefore refused by something, not only stated, and it
+is worth being exact about which part, because the half that is refused is the
+smaller one.
 
-Refused by the type. A hypothesis holding one item twice, which is refused
-rather than deduplicated. A hypothesis whose items carry two different numbers
-of slots, and a hypothesis set whose members do. An item built with a number of
-values the slot layout does not declare.
+Refused by the type. A hypothesis holding one item twice, which the type
+refuses and does not quietly deduplicate. A hypothesis whose items carry two
+different numbers of slots, and a hypothesis set whose members do. An item
+built with a number of values the slot layout does not declare.
 
-Made impossible rather than refused, which is stronger. The structural key is
+Made impossible, which is stronger than being refused. The structural key is
 computed on request and never stored, so no edit to the components can leave a
 key describing what a hypothesis used to be. And the size-zero member is put
-into a hypothesis set by its constructor, which is the only way to build one, so
-there is no path that produces a set without it.
+into a hypothesis set by its constructor, which is the only way to build one,
+so there is no path that produces a set without it.
 
 Refused by nothing, and this is the larger half. Nothing stops a crate elsewhere
 in the tree from writing its own exclusion rule instead of asking the type,
@@ -42,9 +42,9 @@ Nothing stops code that iterates a hypothesis set from filtering the size-zero
 member back out afterwards. Both are boundary rules of the kind
 `docs/decisions/layout.md` says a reader covers, and neither has a check.
 
-What each refusal is worth is a seeded defect rather than this paragraph. Five
-of them are in the body of the pull request that landed the type, each with the
-test it reddened and the plausible mistake it stands for.
+A seeded defect shows what each refusal is worth; this paragraph cannot. Five
+of them are in the body of the pull request that landed the type, each with
+the test it reddened and the plausible mistake it stands for.
 
 Issue #40 is where the probability becomes a field on every hypothesis, issue
 #30 is where the destructive test below lands, and issue #43 is where the shapes
@@ -66,11 +66,11 @@ carrying the marginal probability of the configurations in which it holds. It is
 the object the answer file reports, one per feature, and it is what a reader
 means by "the assignment of this line".
 
-The winner of a feature is the highest-probability member of its hypothesis set.
-A run does not report a configuration, and the winners of two features are not
-guaranteed to be jointly consistent. That is not a defect being hidden: it is
-what a marginal is, and where two winners conflict the run says so rather than
-silently editing one of them. The rule is at the end of this record.
+The winner of a feature is the highest-probability member of its hypothesis
+set. A run does not report a configuration, and the winners of two features
+are not guaranteed to be jointly consistent. That is not a defect being
+hidden: it is what a marginal is, and where two winners conflict the run says
+so and edits neither. The rule is at the end of this record.
 
 ## The hypothesis
 
@@ -81,17 +81,18 @@ three agree.
 
 A hypothesis for a feature is a set of distinct transitions. The set is what
 holds: a hypothesis containing one transition twice would be claiming that one
-transition produced part of a feature and then produced it again, which is not a
-statement about anything, and it is refused rather than deduplicated silently.
+transition produced part of a feature and then produced it again, which is not
+a statement about anything, and it is refused with no silent deduplication.
 
 The structural key of a hypothesis is a pair of multisets, the upper level
 identifiers of its transitions and the lower level identifiers of its
-transitions. Multisets rather than sets, because two distinct transitions can
-share an end. Two lines from one upper level to two different lower levels give
-a key whose upper multiset holds that identifier twice, and that is a different
-claim from a blend of two transitions with two different upper levels. This is
-the key `docs/decisions/competitors.md` selects competitors by and the key
-`docs/validation-metrics.md` compares against a published assignment.
+transitions. Multisets, because two distinct transitions can share an end and
+a set would collapse them. Two lines from one upper level to two different
+lower levels give a key whose upper multiset holds that identifier twice, and
+that is a different claim from a blend of two transitions with two different
+upper levels. This is the key `docs/decisions/competitors.md` selects
+competitors by and the key `docs/validation-metrics.md` compares against a
+published assignment.
 
 The size of a hypothesis is the number of transitions in it.
 
@@ -123,14 +124,15 @@ nothing to act on. It is not subject to the reporting floor of
 `docs/decisions/competitors.md`, and its probability is reported whether it wins,
 loses narrowly or loses by a mile.
 
-It can win, and winning is a normal outcome rather than a failure of the run. It
-wins whenever the posterior puts more mass on it than on any assignment, which
-happens for impurity lines, for molecular bands, for other ionisation stages, for
-instrumental ghosts, for genuinely unknown species, and for real transitions
-whose multipole this release does not generate. `docs/decisions/selection-rules.md`
-names that last case explicitly: everything above E1, M1 and E2 is out of the
-first release, and a feature whose only explanation is a higher multipole is
-reported unassigned rather than forced onto an E1 pair.
+It can win, and winning is a normal outcome rather than a failure of the run.
+It wins whenever the posterior puts more mass on it than on any assignment,
+which happens for impurity lines, for molecular bands, for other ionisation
+stages, for instrumental ghosts, for genuinely unknown species, and for real
+transitions whose multipole this release does not generate.
+`docs/decisions/selection-rules.md` names that last case explicitly:
+everything above E1, M1 and E2 is out of the first release, and a feature
+whose only explanation is a higher multipole is reported unassigned, never
+forced onto an E1 pair.
 
 The property that keeps this from being prose is destructive and belongs to
 issue #30. Remove from the level set a level the truth needs, and the features
@@ -165,11 +167,12 @@ they are different evidential situations, so `docs/decisions/intensities.md`
 requires them to be distinguishable in the output and this record requires the
 hypothesis to carry which it is.
 
-The prior on the blend rate is Beta(1, 9), informative and deliberately so, and
-it is in `docs/decisions/probability-model.md` rather than restated here. The
-reason it is informative is this record's concern: a blend hypothesis is always
-available and always able to absorb a residual, so an uninformative prior lets it
-win everywhere and every crowded region fills with two-component explanations.
+The prior on the blend rate is Beta(1, 9), informative and deliberately so,
+and it lives in `docs/decisions/probability-model.md` and is not restated
+here. The reason it is informative is this record's concern: a blend
+hypothesis is always available and always able to absorb a residual, so an
+uninformative prior lets it win everywhere and every crowded region fills with
+two-component explanations.
 
 ## Mutual exclusion
 
@@ -196,26 +199,27 @@ level, which is the ordinary case and the one the branching constraint exists
 for, and they may share a lower level. What they may not share is a whole
 transition.
 
-Across spectra it is not exclusion at all. The same transition appearing in two
-spectra is one transition observed twice, at two intensities, and that is the
-consistency evidence a per-spectrum model throws away. It is carried by
-transition identity: the transitions of two hypotheses in different spectra are
-the same transition when the triple agrees against one `level_set_id`, and the
-posterior treats that as shared support rather than as a conflict. The
+Across spectra it is not exclusion at all. The same transition appearing in
+two spectra is one transition observed twice, at two intensities, and that is
+the consistency evidence a per-spectrum model throws away. It is carried by
+transition identity: the transitions of two hypotheses in different spectra
+are the same transition when the triple agrees against one `level_set_id`, and
+the posterior counts that as shared support and never as a conflict. The
 identifier of the level set is load bearing here, because two runs against
 different level sets share no transition identities even where the level
 energies are close.
 
-The case the exclusion rule gets wrong is stated rather than left to be
-discovered. A transition resolved into hyperfine or Zeeman components appears in
-the line list as several features, all genuinely produced by one transition, and
-the rule above forces at most one of them to own it. The others are pushed toward
-none-of-these, so the run under-assigns exactly where the data is best resolved.
-The run reports every feature whose winner changed because of the exclusion rule
-and the feature it lost to, so the cost is visible rather than absorbed. What
-would replace the rule is an input contract able to say that two features are
-components of one transition, which `docs/decisions/input-contract.md` does not
-carry today, and that is where the repair belongs rather than here.
+The case the exclusion rule gets wrong is stated here, so nobody has to
+discover it. A transition resolved into hyperfine or Zeeman components appears
+in the line list as several features, all genuinely produced by one
+transition, and the rule above forces at most one of them to own it. The
+others are pushed toward none-of-these, so the run under-assigns exactly where
+the data is best resolved. The run reports every feature whose winner changed
+because of the exclusion rule and the feature it lost to, so the cost is
+visible and nothing absorbs it. What would replace the rule is an input
+contract able to say that two features are components of one transition, which
+`docs/decisions/input-contract.md` does not carry today, and that is where the
+repair belongs.
 
 ## Where two winners conflict
 
@@ -317,15 +321,15 @@ none-of-these cannot be represented by an absent value. `Hypothesis` holds a set
 and `Hypothesis::none_of_these` is a member of that type rather than an absence
 beside it.
 
-The structural key is computed from the components rather than stored beside
+The structural key is computed from the components and never stored beside
 them, so the two cannot disagree. `Hypothesis::key` computes it and no field
 holds it.
 
-Mutual exclusion is a property of a pair of hypotheses that the type can answer,
-rather than a rule the solver reimplements. `Claim::excludes` answers it, over a
-pair carrying the observation each hypothesis belongs to, because two identical
-sets of items exclude each other inside one group and support each other across
-two.
+Mutual exclusion is a property of a pair of hypotheses that the type answers
+itself, and the solver reimplements nothing. `Claim::excludes` answers it,
+over a pair carrying the observation each hypothesis belongs to, because two
+identical sets of items exclude each other inside one group and support each
+other across two.
 
 And a feature's hypothesis set includes the size-zero member at construction, so
 there is no code path that builds a set without it. `HypothesisSet::new` inserts

@@ -1,8 +1,8 @@
 # The gate this board is aiming at, and every deviation from it
 
-Document for issue #50. The target is the gate the sso board runs. That board is
-public, so the target is printed rather than described, and every difference
-between it and this board is deliberate and carries its reason.
+Document for issue #50. The target is the gate the sso board runs. That board
+is public, so the target is printed here and not paraphrased, and every
+difference between it and this board is deliberate and carries its reason.
 
 The two boards are different things. One is a plugin inside a managed runtime
 and this one is a numerical engine, so parity here means the same standard of
@@ -88,8 +88,8 @@ request at all.
 
 Three names appear twice and it is one reason each time. `unicode-guard.yml`,
 `invariants.yml` and `fixtures.yml` each trigger on both push and pull request
-and name their job once, so a single context covers both runs rather than two
-contexts being owed.
+and name their job once, so a single context covers both runs and no second
+context is owed.
 
 Five of the eleven are the required set printed above. The other six report and
 stop nothing: `Analyze (actions)`, `Analyze (rust)`, `CodeQL`, `Every fixture
@@ -110,18 +110,18 @@ waiting on:
     Scorecard analysis
 
 Read 2026-08-09 on the merge commit of #87. A required context that never
-reports would block every merge instead of gating one, so a check that runs only
-on push is reported and never required, and that is a property of its trigger
-rather than a judgement about its value.
+reports would block every merge instead of gating one, so a check that runs
+only on push is reported and never required, and that follows from its
+trigger. It says nothing about the check's value.
 
 ## What is still not required, and is owed
 
 `build`, `test`, `format` and `lint` are #5's and none of them exists yet, so
-none of them is in the set above. Adding a check to the required set is a second
-settings change after the check's first green run, and that ordering is now the
-normal case here rather than a thing to decide once: a context cannot be
-required before it has reported, and the set above was set from what had already
-run.
+none of them is in the set above. Adding a check to the required set is a
+second settings change after the check's first green run, and that ordering is
+now the normal case here, no longer something decided once: a context cannot
+be required before it has reported, and the set above was set from what had
+already run.
 
 ## The map
 
@@ -158,10 +158,10 @@ command is the authority for which of them a merge waits on.
 
 The floor build. The target board builds against an oldest supported host
 because a plugin can be loaded by an older application than the one it was
-compiled against. There is no host application here, so the purpose of that job,
-catching a dependency on something the declared minimum does not have,
-transfers to a build against the declared minimum toolchain version rather than
-disappearing.
+compiled against. There is no host application here, so the purpose of that
+job, catching a dependency on something the declared minimum does not have,
+transfers to a build against the declared minimum toolchain version; it does
+not disappear.
 
 The packaging job. Its runtime half has no counterpart, because nothing here is
 packaged for somebody else's runtime. Its useful half is the bill of materials
@@ -193,9 +193,9 @@ that head came from zizmor:
 
 Read 2026-08-11. Two things follow and both belong beside the row above. The
 context that reports a scan is not the context that judges one, so a green
-`CodeQL` is compatible with a finding sitting in the security tab, and what went
-red there was a job re-running its tool and failing on the result rather than an
-alert doing it. And forty-two rules across the two languages returned nothing on
+`CodeQL` is compatible with a finding sitting in the security tab, and what
+went red there was a job re-running its tool and failing on the result, and no
+alert did it. And forty-two rules across the two languages returned nothing on
 three findings written to be found, which is a number worth carrying because a
 scanner that finds nothing and a scanner with nothing to find leave the same
 green check. Neither of those is repaired by this page. #52 holds them.
@@ -247,18 +247,20 @@ consider at all. `spectro-objective` holds every score term. `assoc-posterior`
 holds the posterior construction and the mass that stays on none of these, which
 is the number a person would put in a paper.
 
-A crate is named rather than a directory or a module path. The names are the
-units `docs/decisions/layout.md` fixes, a crate cannot be added without choosing
-a side, and the job refuses a name with no crate behind it, so a crate that is
-renamed or removed reds this check instead of quietly leaving the surface.
+A crate is named, not a directory and not a module path. The names are the
+units `docs/decisions/layout.md` fixes, a crate cannot be added without
+choosing a side, and the job refuses a name with no crate behind it, so a
+crate that is renamed or removed reds this check instead of quietly leaving
+the surface.
 
 ### The bar, and why that number
 
 Eighty-five per cent of executable lines, over the four crates together.
 
-It is set just under what the surface measures today rather than at a round
-number chosen in advance, so it bites on a real fall and not on the difference
-between one test and the next. Today, with one of the four crates carrying code:
+It is set just under what the surface measures today, and no round number was
+chosen in advance, so it bites on a real fall and not on the difference
+between one test and the next. Today, with one of the four crates carrying
+code:
 
     cargo llvm-cov --workspace --locked --json --output-path coverage.json
     jq -r '.data[0].totals.lines | "\(.covered)/\(.count) \(.percent)"' coverage.json
@@ -287,7 +289,7 @@ module arrives as uncovered lines in the denominator.
 
 It gates. `Coverage on the deciding surface` is one of the five contexts the
 ruleset requires, read at the top of this page on 2026-08-09, so a fall below
-the bar stops a merge rather than only reporting one. The sentence that stood
+the bar stops a merge and does not only report one. The sentence that stood
 here said this job reports and reports only, which was true while nothing on
 this board was required.
 
@@ -309,15 +311,15 @@ Three things run outside the required set on the target board and the same
 posture is taken here deliberately.
 
 Mutation testing over the scoring core, reported and not gating, with an
-infrastructure failure in it loud rather than silent. A mutation score that
-gates becomes a number people tune to, and a mutation run that fails to start
-and reports nothing is indistinguishable from one that found nothing unless the
-failure is made loud. #55 carries it.
+infrastructure failure in it made loud. A mutation score that gates becomes a
+number people tune to, and a mutation run that fails to start and reports
+nothing is indistinguishable from one that found nothing unless the failure is
+made loud. #55 carries it.
 
 Fuzzing, running out of band, with the seed corpus replayed inside the gating
 job. That arrangement is what makes a parser regression red on the change that
-caused it rather than days later, and it is worth copying exactly rather than
-approximating with a nightly job alone. #56 carries it.
+caused it and not days later, and it is worth copying exactly; approximating
+it with a nightly job alone is not the same thing. #56 carries it.
 
 Whole-repository coverage, reported beside the bar that gates on the deciding
 surface, so that a fall in coverage somewhere that does not gate is still

@@ -71,7 +71,7 @@ Because a prior is doing work, the run reports how much work. Every run states
 the share of its accepted assignments whose acceptance changes when rho is set
 to zero, at the run's own thresholds, as one number with its numerator and
 denominator. A run in which that share is large is a run whose answers rest on
-this default, and the reader is told so rather than left to discover it.
+this default, and the reader is told so and does not have to discover it.
 
 ### Level energies from a structure calculation
 
@@ -81,9 +81,9 @@ property of the method rather than of the level.
 The distribution is a Student t with `uncertainty.predicted.dof` degrees of
 freedom, default 4, scaled so that its standard deviation is the declared
 spread. The heavy tail is right here for the reason it was wrong for the
-observed positions: a structure calculation does not miss by a wide draw from a
-narrow distribution, it misses because a configuration interaction was truncated
-or a term was placed in the wrong order, and those are common rather than
+observed positions: a structure calculation does not miss by a wide draw from
+a narrow distribution, it misses because a configuration interaction was
+truncated or a term was placed in the wrong order, and those are common, not
 extreme.
 
 Within one configuration the errors move together, so the model carries one
@@ -136,11 +136,12 @@ about the spectrum, not a correction to be applied silently, and the run says so
 by reporting the value rather than only its effect.
 
 The first release fits no higher term than these two. A curvature in the
-dispersion residual is real and this model cannot represent it, so a source with
-one will show it as an inflated scatter that the position term reads as noise.
-That residual risk is stated rather than closed, and the measurement that would
-justify a third term is the pattern of position residuals against wavenumber
-within one source, which a run reports and nobody has yet looked at here.
+dispersion residual is real and this model cannot represent it, so a source
+with one will show it as an inflated scatter that the position term reads as
+noise. That residual risk is stated and not closed, and the measurement that
+would justify a third term is the pattern of position residuals against
+wavenumber within one source, which a run reports and nobody has yet looked at
+here.
 
 ## What is independent of what
 

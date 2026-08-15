@@ -23,7 +23,7 @@ spectrum of a given element in a given stage of ionization.
 That is the whole reason for what follows. An objective comparing a recorded
 intensity against a transition probability in absolute terms is comparing two
 numbers that were never on one scale, and it will produce a plausible wrong
-answer rather than an error.
+answer and not an error.
 
 ## What enters the objective, and in what form
 
@@ -157,10 +157,10 @@ source flags as blended, and a feature the run assigns a blend hypothesis to,
 are both treated this way; the two cases are recorded separately in the output
 so a reader can tell a blend the source knew about from one the run proposed.
 
-Non-detection is not used. A transition that should have produced a line and did
-not is real evidence, and reading it needs a detection threshold per spectrum
-that the input contract does not carry. The first release does not use it, and
-saying so here is the disclosure rather than a plan.
+Non-detection is not used. A transition that should have produced a line and
+did not is real evidence, and reading it needs a detection threshold per
+spectrum that the input contract does not carry. The first release does not
+use it, and saying so here is the disclosure, and it is not a plan.
 
 ## What appears in the output
 

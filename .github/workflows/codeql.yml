@@ -28,8 +28,9 @@
 # nothing at all about what the scan saw.
 #
 # No schedule. Every trigger below is a change to this tree, so a query pack
-# that grows a new rule does not re-score code nobody has touched since, and
-# this file states that rather than a weekly run implying it. Whether recurring
+# that grows a new rule does not re-score code nobody has touched since. The
+# trigger list says so outright, where a weekly run would only imply it.
+# Whether recurring
 # runs are paid for here is entry 8 of #1 and is not decided by a workflow.
 #
 # Nothing here is required to merge. The required set is what

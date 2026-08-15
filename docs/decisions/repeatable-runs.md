@@ -23,11 +23,11 @@ One crate in the workspace holds any Rust at all and it is not that one, so the
 reason has moved from an empty repository to an empty crate and the conclusion
 has not moved with it.
 
-That is also why issue #19 is not closed by this file. Its Done-when asks for a
-test that runs one input twice at different thread counts and compares the
+That is also why issue #19 is not closed by this file. Its Done-when asks for
+a test that runs one input twice at different thread counts and compares the
 output bytes, and for a linked run where a deliberately introduced
 nondeterminism makes that test red. Both need a program, and what the tree now
-carries is a reader rather than a run.
+carries is a reader and not a run.
 
 ## Three claims, kept apart
 
@@ -38,7 +38,7 @@ answer bytes. That is what this record fixes, and it is the claim the test in
 issue #19 makes.
 
 Two runs of one version on two platforms agree. That is weaker, it is measured
-rather than assumed, and it is issue #39's, which states the tolerance the
+and never assumed, and it is issue #39's, which states the tolerance the
 scores are compared at and asserts the assignments and their ordering are
 identical.
 
@@ -48,8 +48,9 @@ in writing. Nothing here asserts it.
 
 ## The canonical order
 
-One ordering rule stands behind the tie-breaking, the summation and the output,
-so it is stated once and referred to rather than restated three times.
+One ordering rule stands behind the tie-breaking, the summation and the
+output, so it is stated once and referred back to, and never restated three
+times.
 
 Every identifier is compared as its raw UTF-8 byte sequence, shortest-prefix
 first. Not as a locale collation, not case-insensitively, and not by any
@@ -79,7 +80,7 @@ ordering would leave those two hypotheses tied with nothing to separate them.
 
 Nothing ordered is read out of a hash container. `docs/decisions/means.md`
 measured why: the hash map in this language randomises its iteration order
-between runs of one binary, which is the hazard being loud rather than quiet,
+between runs of one binary, which is the hazard announcing itself loudly,
 and the rule this record takes from it is that the container which would tempt
 somebody is the one that fails first.
 
@@ -228,10 +229,10 @@ that a decision rather than an accident.
 
 ## Quoting a run
 
-`docs/decisions/probability-model.md` refuses any sentence giving a probability
-without naming the level set and the line list it is conditional on, and says
-this record exists so that the identifiers are short enough to carry. They are:
-the declared identifier and the first bytes of the digest for each input, the
+`docs/decisions/probability-model.md` refuses any sentence giving a
+probability without naming the level set and the line list it is conditional
+on, and points here for identifiers short enough to carry. They are: the
+declared identifier and the first bytes of the digest for each input, the
 profile, the seed and the engine version.
 
 Whether a run also gets a minted identifier, and whether the record behind it is

@@ -1,9 +1,9 @@
 # Fixtures this repository is allowed to carry
 
 The rule for issue #8. A fixture decides what the suite is able to prove, so
-every fixture says where it came from, under what terms it is here, and whether
-it is real or made up. A file that says none of those is refused rather than
-quietly trusted.
+every fixture says where it came from, under what terms it is here, and
+whether it is real or made up. A file that says none of those is refused,
+never quietly trusted.
 
 This repository carries no fixture today, at either of the two places one could
 stand:
@@ -39,19 +39,19 @@ The origin. For a real extract, the database or the publication, the query or
 the table it came from, and the date it was retrieved. For a generated file, the
 tracked generator that produced it and the arguments it was given.
 
-The terms. What the source said its terms were on the date they were read, with
-the link or the command that read them, and what attribution an output computed
-from it has to carry. `docs/sources.md` is where the same question is answered
-per upstream rather than per file, and a fixture record points at the entry there
-rather than restating it.
+The terms. What the source said its terms were on the date they were read,
+with the link or the command that read them, and what attribution an output
+computed from it has to carry. `docs/sources.md` is where the same question is
+answered per upstream, not per file, and a fixture record points at the entry
+there instead of restating it.
 
 Real or synthetic, in one word, because the two support different claims and a
 reader should not have to infer which one they are holding.
 
-A synthetic fixture says two more things. The property it was built to have, in
-one sentence, so a reviewer sees what the file is for instead of inferring it
-from the bytes. And the generator, which is tracked in this repository and
-committed, so the file can be produced again rather than being a set of bytes
+A synthetic fixture says two more things. The property it was built to have,
+in one sentence, so a reviewer sees what the file is for instead of inferring
+it from the bytes. And the generator, which is tracked in this repository and
+committed, so the file can be produced again and is not a set of bytes
 somebody once made.
 
 A real extract says one more thing. Whether it was edited after retrieval, and
@@ -81,12 +81,12 @@ and the blob git would have stored is 31 bytes, with both carriage returns gone:
     00000000: 7761 7665 6c65 6e67 7468 0969 6e74 656e  wavelength.inten
     00000010: 7369 7479 0a35 3030 2e30 0931 3230 0a    sity.500.0.120.
 
-The cause is `core.autocrlf`, which was `true` on the machine this was measured
-on, from the system, the global and the local configuration alike. That is the
-ordinary state of a Windows clone rather than an unusual setting. The byte a
-fixture exists to prove is deleted, the deletion is silent, the file still looks
-right in an editor, and the test that was supposed to prove the reader survives a
-carriage return passes because it never met one.
+The cause is `core.autocrlf`, which was `true` on the machine this was
+measured on, from the system, the global and the local configuration alike.
+That is the ordinary state of a Windows clone, not an unusual setting. The
+byte a fixture exists to prove is deleted, the deletion is silent, the file
+still looks right in an editor, and the test that was supposed to prove the
+reader survives a carriage return passes because it never met one.
 
 The worse half is that nothing in the repository decided any of this. There was
 no tracked `.gitattributes`, so the answer came from each clone's own

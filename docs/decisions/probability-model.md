@@ -137,10 +137,10 @@ are in `docs/decisions/intensities.md`. The reporting floor is in
 
 ## The constructions that were rejected
 
-A posterior over the enumerated candidates alone, conditional on the truth being
-among them. It is the easy answer and it is the one this record exists to
-refuse. It is the whole trap above, and its failure is not a rare corner: it is
-worst exactly in the partially analysed spectra the board is pointed at.
+A posterior over the enumerated candidates alone, conditional on the truth
+being among them. That is the easy answer, and it is refused here. The trap
+above is exactly this construction, and its failure is not a rare corner: it
+bites hardest in the partially analysed spectra the board is pointed at.
 
 A likelihood ratio against the accidental-match null, reported instead of a
 probability. It needs no prior, which is its attraction, and it answers a

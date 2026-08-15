@@ -17,9 +17,9 @@ a file to measure. The recipes are written out so a reader can rebuild each one.
 What remains owed to #4 is written at the end.
 
 The toolchain throughout was cargo 1.97.0 and rustc 1.97.0 on
-x86_64-pc-windows-msvc. Every result below is a result on that target with that
-version. No other target was measured, and where that matters it is said again
-rather than left to the reader.
+x86_64-pc-windows-msvc. Every result below is a result on that target with
+that version. No other target was measured, and where that matters it is said
+again so the reader does not have to infer it.
 
 ## The compiler version comes from a file
 
@@ -31,10 +31,10 @@ the components:
     profile = "minimal"
     components = ["rustfmt", "clippy"]
 
-The point of the file rather than a string in a job definition is that one place
-decides the version for the person running the suite and for the machine running
-it, so the two cannot drift apart while both look correct. rustup reads it
-without being asked. In a directory carrying the file above:
+The point of a file, where a job definition would have carried a string, is
+that one place decides the version for the person running the suite and for
+the machine running it, so the two cannot drift apart while both look correct.
+rustup reads it without being asked. In a directory carrying the file above:
 
     rustup show active-toolchain
     1.97.0-x86_64-pc-windows-msvc (overridden by '<elided>/rust-toolchain.toml')
@@ -45,7 +45,7 @@ here and below. A tracked file quoting a working directory carries a user name
 into a public repository, which is what issue #59 exists to refuse in the answer
 files, and the recipe reconstructs the full line for a reader who wants it.
 
-The version pinned is exact rather than a channel name. `stable` is a moving
+The version pinned is exact, never a channel name. `stable` is a moving
 target by construction, and a board whose output is meant to be cited cannot
 have the compiler move underneath a published number without anyone editing a
 tracked file.
@@ -82,9 +82,9 @@ A graph that has been altered underneath. Changing a single character of one
 Restoring the lock returns the build to exit 0, so the refusal is the lock's
 content and not a poisoned cache.
 
-Both messages are diagnostics of one cargo version rather than a promise about
-every future one, and the second names the package that was tampered with, which
-is the field a reader needs.
+Both messages diagnose one cargo version and promise nothing about every
+future one, and the second names the package that was tampered with, which is
+the field a reader needs.
 
 The first message does not name the repair. It names a different flag, and a
 contributor who follows its help line drops the guard instead of updating the
@@ -168,11 +168,12 @@ what it printed before. So on this target byte-identity is reachable, it costs
 one flag, and the decision is to take it.
 
 The sentence that followed said the release profile carries the flag when the
-workspace lands. The workspace has landed and the profile does not carry it, and
-that is deliberate rather than forgotten. `/Brepro` is a flag to the MSVC
+workspace lands. The workspace has landed and the profile does not carry it,
+and that is deliberate and not an oversight. `/Brepro` is a flag to the MSVC
 linker, and the workspace links nothing: thirteen library crates produce
 thirteen `.rlib` archives and no executable, so there is no link step for the
-flag to reach and no timestamp or PDB signature in the output for it to replace.
+flag to reach and no timestamp or PDB signature in the output for it to
+replace.
 
     cargo build --release --locked --offline
     ls target/release/*.rlib | wc -l
@@ -181,9 +182,9 @@ flag to reach and no timestamp or PDB signature in the output for it to replace.
     ls: cannot access 'target/release/*.exe': No such file or directory
 
 Adding the flag now would put a line in the manifest whose effect nobody could
-measure, which is the shape this record exists to avoid. The binary crate that
-would give it something to act on is entry 6 of #1, and the decision stands
-waiting for it.
+measure, and an unmeasurable setting is the one shape refused here. The binary
+crate that would give it something to act on is entry 6 of #1, and the
+decision stands waiting for it.
 
 What that flag costs was not measured here. Debuggers and symbol servers key a
 binary to its PDB through exactly the two fields it replaces, so a workflow that
@@ -193,11 +194,12 @@ makes no claim about how much.
 ### What is not claimed
 
 Byte-identity was reached on one target, with one toolchain version, on one
-machine, for a crate with one dependency and no build script. A second platform
-is issue #39's measurement rather than this record's claim, and a build script,
-a proc macro or a code generator is a source of variation this crate did not
-have. Nothing here says a rebuild in a year reproduces these bytes; it says
-which fields moved when nothing else did, and which flag stopped them.
+machine, for a crate with one dependency and no build script. A second
+platform is issue #39's measurement to take, and no claim of it is made here.
+A build script, a proc macro or a code generator is a source of variation this
+crate did not have. Nothing here says a rebuild in a year reproduces these
+bytes; it says which fields moved when nothing else did, and which flag
+stopped them.
 
 ## The same measurements, made here
 
@@ -222,13 +224,14 @@ being asked:
 
 Nothing below depends on this record's own text, so a later commit that edits
 only prose reproduces it unchanged. What the results do depend on is the crate
-sources, the manifests, the lock and the pin file, and a change to any of those
-is a reason to run the commands again rather than to cite these.
+sources, the manifests, the lock and the pin file, and a change to any of
+those is a reason to run the commands again; citing the outputs below is not
+enough.
 
 ### Two builds of one commit are byte-identical
 
-Built twice from a clean `target`, with no source byte touched between the two,
-and the thirteen archives compared by content rather than by name:
+Built twice from a clean `target`, with no source byte touched between the
+two, and the thirteen archives compared by content, never by name:
 
     cargo clean && cargo build --release --locked --offline   # first build
     cargo clean && cargo build --release --locked --offline   # second build
@@ -264,8 +267,8 @@ One dependency added to a member manifest, the lock left alone:
     help: to generate the lock file without accessing the network, remove the --locked flag and use --offline instead.
     exit=101
 
-The lock is byte-for-byte what it was before that run, so the flag refuses
-rather than repairing quietly and then complaining:
+The lock is byte-for-byte what it was before that run, so the flag refuses; it
+does not repair quietly and then complain:
 
     sha256sum Cargo.lock        # before and after the refusing run
     4eaad7b98d193fbc2a61d7c1c7ed8eaa4aafbd70dbd314d955008c5e2ab20e1a *Cargo.lock
@@ -286,7 +289,7 @@ is fetched, so the lock carries no checksum to alter:
 
 That refusal therefore stays a scratch-crate result until this workspace takes
 its first external dependency, and it should be re-measured on the change that
-adds one rather than assumed to have carried over.
+adds one. Nothing here carries over on its own.
 
 ### The path is in this workspace's artefacts
 
@@ -336,8 +339,9 @@ Building at each root with that root remapped to one name:
     strings -a <either>/libspectro_contract.rlib | grep -c '<either root>'
     0
 
-Twelve of the thirteen archives then hash the same at both paths. The thirteenth
-does not, and the residue is in its metadata section rather than in any string:
+Twelve of the thirteen archives then hash the same at both paths. The
+thirteenth does not, and the residue is in its metadata section, not in any
+string:
 
     diff <(sha256sum remapped-first/*.rlib | sed 's# .*/# #') \
          <(sha256sum remapped-second/*.rlib | sed 's# .*/# #') | grep -c '^[<>]'

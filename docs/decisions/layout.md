@@ -15,8 +15,8 @@ The tree this record describes exists. Read at e8e27be:
     grep -c '^    "crates/' Cargo.toml
     14
 
-Both halves of this record are refused by something now rather than only stated.
-The section on the dependency edge below carries that measurement and how narrow
+Both halves of this record are refused by something now, not only stated. The
+section on the dependency edge below carries that measurement and how narrow
 it is, and the section carrying the word list names the check that reads it.
 
 Every unit this record names is in the workspace. The binary above both sides
@@ -36,7 +36,7 @@ section declaring one:
     grep exit=1
 
 Issue #3 asks for a tree that matches this document; what remains of that half
-is written into #3 rather than left to be inferred.
+is written into #3 and is not left to be inferred.
 
 ## Why the line is drawn now and not later
 
@@ -157,14 +157,14 @@ an edge and every other crate declares none:
     crates/spectro-candidates/Cargo.toml:10:assoc-model = { path = "../assoc-model" }
     crates/spectro-objective/Cargo.toml:10:assoc-model = { path = "../assoc-model" }
 
-Five `assoc-` crates and eight `spectro-` crates make forty ordered pairs in the
-forbidden direction. Two of them close a cycle, `assoc-model` on
+Five `assoc-` crates and eight `spectro-` crates make forty ordered pairs in
+the forbidden direction. Two of them close a cycle, `assoc-model` on
 `spectro-candidates` and `assoc-model` on `spectro-objective`. Those two are
 what the grep above implies; the other thirty-eight are derived from the same
-grep rather than each being run, and what they are derived to is that cargo
-accepts them.
+grep and were not each run, and what they are derived to is that cargo accepts
+them.
 
-One of the thirty-eight was run rather than derived, and it is worth pasting
+One of the thirty-eight was run and not derived, and it is worth pasting
 because it is the failure this section would otherwise be read as excluding.
 `spectro-quantity` has no edge back. Naming it from inside `assoc-model` and
 declaring the dependency the help text suggested compiles:
@@ -204,12 +204,12 @@ of the crate rather than its bytes, at which point `level` as a field name on an
 association type is distinguishable from `level` in `log_level`, and that is a
 larger tool than this board needs today.
 
-The list is the check's data rather than a paragraph in this file, for the same
-reason `docs/quality-parity.md` prints its lists rather than remembering them.
+The list is the check's data and not a paragraph in this file, for the same
+reason `docs/quality-parity.md` prints its lists instead of remembering them.
 The check is `no-spectroscopic-identifier-on-the-generic-side` in
-`.github/workflows/invariants.yml`, which carries that list as a row naming this
-record, so a contributor who trips it is sent to the argument rather than to a
-pattern.
+`.github/workflows/invariants.yml`, which carries that list as a row naming
+this record, so a contributor who trips it is sent to the argument rather than
+to a pattern.
 
 It proves the pattern still catches the mistake on every run rather than once.
 The job refuses a rule whose own declared demonstration its pattern does not

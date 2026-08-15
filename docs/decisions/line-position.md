@@ -48,14 +48,14 @@ The medium of a number depends on where in the file that number sits, so a
 reader that applies one rule to a whole file corrupts one end of it. Splitting
 at the wrong place is worse than not splitting, because it looks like a fix.
 
-And the rule is stated on the wavenumber rather than on the wavelength, which is
-the only way it could be stated without circularity. A wavelength near a
+And the rule is stated on the wavenumber rather than on the wavelength, which
+is the only way it could be stated without circularity. A wavelength near a
 boundary does not by itself say which side it is on, since which side it is on
 is what decides the conversion that would tell you. Applied to sigma the
-question does not arise, because sigma is the same number in either medium. So a
-reader that meets a wavelength column converts under the medium the boundary
+question does not arise, because sigma is the same number in either medium. So
+a reader that meets a wavelength column converts under the medium the boundary
 rule assigns to the wavenumber that wavelength implies, and near a boundary it
-carries out that test on the vacuum wavenumber rather than on the wavelength.
+carries out that test on the vacuum wavenumber and not on the wavelength.
 
 None of this is a property of physics. It is a property of one source's output
 convention, so it lives in that source's adapter, which is issue #23, and never
@@ -98,10 +98,10 @@ propagated anyway, for two reasons. It costs one term in a variance that is
 being computed regardless. And it is the term whose absence would be invisible:
 a position converted from air carries an uncertainty contribution a position
 read in vacuum does not, and if that contribution is dropped the two are
-compared as though they had the same provenance. The uncertainty model in issue
-#14 is where the term joins the others, and it enters as an independent relative
-term on the converted position, since it is a property of the formula rather
-than of the spectrum.
+compared as though they had the same provenance. The uncertainty model in
+issue #14 is where the term joins the others, and it enters as an independent
+relative term on the converted position, since it is a property of the formula
+and not of the spectrum.
 
 The term is recorded per position, so a run can report how many of its positions
 carry a conversion uncertainty at all. A run over a level set and a line list
@@ -123,7 +123,7 @@ iteration starts from the air wavelength treated as though it were the vacuum
 one, evaluates the index there, divides to get a better vacuum wavelength, and
 repeats.
 
-The criterion is written here rather than left to whoever writes the function.
+The criterion is written here, not left to whoever writes the function.
 The iteration stops when the relative change in the vacuum wavenumber between
 two successive steps falls below 1e-10. That is a factor of fifty inside the
 5e-9 relative uncertainty the formula itself carries at its best, so the

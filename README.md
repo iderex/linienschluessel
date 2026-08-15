@@ -1,6 +1,15 @@
 # linienschluessel
 
-A measured spectrum holds hundreds to thousands of lines and assigning them to level transitions is handwork, with documented failures such as the J quantum numbers in Tm II that had to be revised after being assigned wrongly. Formally it is clean: given observed wavelengths with intensities and predicted levels, find the assignment satisfying the Ritz combination principle, respecting the selection rules and best explaining the intensity ratios, returned with uncertainties rather than as a single answer. NIST supplies levels and lines separately, so the method is validated against already-solved spectra before being turned loose on the unidentified lines in solar, fusion and laboratory spectra.
+A measured spectrum holds hundreds to thousands of lines, and assigning them
+to level transitions is handwork. It goes wrong: the J quantum numbers in Tm
+II had to be revised after they were assigned wrongly. The task itself is
+formally clean. Given observed wavelengths with intensities and predicted
+levels, find the assignment that satisfies the Ritz combination principle,
+respects the selection rules and best explains the intensity ratios. The
+answer comes back with uncertainties, not as one line of output. NIST supplies
+levels and lines separately, so the method is validated against already-solved
+spectra before it is turned loose on the unidentified lines in solar, fusion
+and laboratory spectra.
 
 Planning happens on the issue tracker first. Every decision that shapes
 the architecture is written down there with its reasons before the code
@@ -22,11 +31,12 @@ reasons. The command that reads it is the word list that file carries:
     git grep -nE 'std::net|TcpStream|TcpListener|UdpSocket|reqwest|hyper|ureq|curl::|tokio::net|SocketAddr|to_socket_addrs' -- 'crates' ; echo "grep exit=$?"
     grep exit=1
 
-The clean result is worth more than it did and is still not the property, and
-the same file says why. There are thirteen crates here and eleven of them hold
-no code, so the search covers two, and those two are the readers that take a
-file from your disk. What will be worth something is a run of the whole pipeline
-with no network route available, and that does not exist.
+A clean result there is worth more now than it once was, and it is still not
+the property itself; the same file says why. There are thirteen crates here
+and eleven of them hold no code, so the search covers two, and those two are
+the readers that take a file from your disk. What will be worth something is a
+run of the whole pipeline with no network route available, and that does not
+exist.
 
 An unpublished spectrum loaded here stays unpublished, under the same rule and
 the same file. Nothing transmits, uploads or reports anything: no telemetry, no

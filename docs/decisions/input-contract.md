@@ -13,8 +13,8 @@ carries a version marker from its first commit, and it is checkable by a
 validator any producer can run without importing anything from here.
 
 This record covers the first half of what issue #18 asks for. The validator it
-describes does not exist, so #18 is not closed by it, and the reason is written
-into #18 rather than left to be inferred from an open issue.
+describes does not exist, so #18 is not closed by it, and the reason is
+written into #18 and is not left to be inferred from an open issue.
 
 ## The means
 
@@ -103,14 +103,14 @@ the same reason.
 
 Where `covariance_file` is present it names one further file in the same
 directory, and the input is then the pair. That is the one place this contract
-is not a single file, and it is stated here rather than left as a surprise: a
+is not a single file, and it is stated here and not left as a surprise: a
 dense covariance over a few hundred levels is tens of thousands of numbers and
 does not belong inline in a file somebody reads.
 
 The companion carries the same `contract_version` and `level_set_id`, and its
 body is `level_id` by `level_id` by value, upper triangle including the
-diagonal. A pair not listed is zero. A `level_id` in it that is not in the level
-set is refused rather than ignored.
+diagonal. A pair not listed is zero. A `level_id` in it that is not in the
+level set is refused, never ignored.
 
 ## The line list
 
@@ -156,7 +156,7 @@ upstream's convention into itself.
 ## The transition rates, which are a third table
 
 The two contracts issue #18 names are one table short, and the shortfall is
-worth stating rather than discovering later.
+worth stating now, before somebody discovers it later.
 
 The branching constraint needs a transition rate per transition. A transition is
 a pair of levels, so a rate is a property of neither an observed feature nor a

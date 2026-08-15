@@ -22,7 +22,7 @@ What that does not amount to is a build that refuses to proceed without them,
 which is issue #4's and is not this record's to claim. Issue #3 is where the
 layout that carries the boundary between the engine and the spectroscopy is
 drawn, and what refuses a violation of that boundary, together with how narrow
-the refusal is, is measured in `docs/decisions/layout.md` rather than restated
+the refusal is, is measured in `docs/decisions/layout.md` and is not restated
 here.
 
 ## The five points, answered
@@ -34,11 +34,11 @@ wavelength, observed against Ritz: none of these produces a crash. Each produces
 a number of the right magnitude and the wrong meaning, and a test suite catches
 such a thing one case at a time, in the cases somebody thought of.
 
-Rust removes the class rather than sampling it, because the result type of an
-operator is chosen by the author. The difference of two level energies is a
-transition wavenumber and is not itself a level energy, which is the Ritz
-combination principle written as a type rather than as a comment. The following
-program is the whole argument, and it is short enough to paste:
+Rust removes the class; it does not merely sample it, because the result type
+of an operator is chosen by the author. The difference of two level energies
+is a transition wavenumber and is not itself a level energy, which is the Ritz
+combination principle written into the type system instead of into a comment.
+The following program is the whole argument, and it is short enough to paste:
 
     #[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
     struct Kayser(f64);          // vacuum wavenumber, cm^-1
@@ -82,7 +82,7 @@ languages here is not that one has named types and the other does not. It is
 that only one of them can say what an operation between two quantities produces,
 and on this board almost every operation is a difference.
 
-### An order of summation that is fixed rather than inherited
+### An order of summation that is fixed, never inherited
 
 The engine sums a score over thousands of features and compares sums, and
 floating point addition is not associative, so the order is part of the answer.
@@ -117,7 +117,7 @@ rule the engine takes from this is that no ordered result is read out of a hash
 container, and the container that would tempt somebody is the one that fails
 first.
 
-The second hazard is left switched off rather than managed. Rust adds no
+The second hazard is left switched off, and nothing manages it. Rust adds no
 parallelism unless a dependency is chosen for it, so a reduction is sequential
 until somebody makes it otherwise, and the day that changes it is a deliberate
 change with a summation order attached to it.
@@ -184,14 +184,14 @@ of the gate.
 ## The candidates that lost, and what each lost on
 
 Go. It has the simplest build and the best cross-compilation of the five, and
-its test runner and its coverage-guided fuzzing are in the toolchain as well, so
-it wins or draws on the last two points. It loses on the first, and it loses on
-the point this board's failure mode lives in. The measurement is in the first
-section: Go refuses a subtraction between two differently named types and cannot
-refuse a subtraction that returns the wrong quantity, because the result type of
-an operator is not the author's to choose. On a board where the canonical defect
-is a plausible wrong number produced by a difference, that is the deciding gap
-rather than a preference about syntax.
+its test runner and its coverage-guided fuzzing are in the toolchain as well,
+so it wins or draws on the last two points. It loses on the first, and it
+loses on the point this board's failure mode lives in. The measurement is in
+the first section: Go refuses a subtraction between two differently named
+types and cannot refuse a subtraction that returns the wrong quantity, because
+the result type of an operator is not the author's to choose. On a board where
+the canonical defect is a plausible wrong number produced by a difference,
+that is the deciding gap, and no preference about syntax comes into it.
 
 Python. It is where the people who would use this work already are, and where
 the reference optimisation libraries live, which is a real cost to give up and

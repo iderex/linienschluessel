@@ -102,10 +102,10 @@ retrieved at, the date of retrieval, and the citation above. The citation is
 what the source asks for, and it is not optional.
 
 Where the answer file is redistributed, the copyright statement above travels
-with the part of the answer derived from this source. An answer file that mixes
-this board's assignments with upstream values is the place that question
+with the part of the answer derived from this source. An answer file that
+mixes this board's assignments with upstream values is the place that question
 actually bites, and how far it reaches is a question about the answer format
-rather than about this file.
+and not about this file.
 
 ### What the exports are shaped like
 
@@ -158,8 +158,8 @@ empty:
     git grep -c '' -- crates/spectro-answer/src/lib.rs ; echo "exit=$?"
     exit=1
 
-Read at a23385a. There is code in this repository now, in one crate of thirteen,
-and it reads inputs rather than emitting answers.
+Read at a23385a. There is code in this repository now, in one crate of
+thirteen, and it reads inputs and emits no answers.
 
 A test asserting that a run reading a source with an attribution requirement
 produces an answer file carrying it. Same reason.
